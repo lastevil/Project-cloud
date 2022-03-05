@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.geometry.Insets?>
+<VBox HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="gb.project.cloud.client.ClientController">
+        <MenuBar >
+            <menus>
+                <Menu mnemonicParsing="false" text="File">
+                    <items>
+                        <MenuItem mnemonicParsing="false" text="Quit" onAction="#exit" />
+                    </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Settings">
+                    <items>
+                        <MenuItem mnemonicParsing="false" text="Connect" onAction="#setConnection"/>
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+        <HBox HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+            <padding>
+                <Insets bottom="5" left="5" right="5" top="5"/>
+            </padding>
+            <VBox HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                <Label fx:id="leftLabel" text="This computer" />
+                <TextField fx:id="clientField" editable="false"/>
+                <ListView fx:id="clientView" minHeight="200" minWidth="200" />
+            </VBox>
+            <VBox alignment="CENTER" >
+                <padding>
+                    <Insets bottom="5" left="5" right="5" top="5"/>
+                </padding>
+                <Button fx:id="bSend"  mnemonicParsing="false" minHeight="26.0" minWidth="43.0" text="Send" onAction="#upload"/>
+                <Label></Label>
+                <Button fx:id="bGet"  mnemonicParsing="false" minHeight="26.0" minWidth="43.0" text="Get" onAction="#download" />
+            </VBox>
+            <VBox HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+                <Label fx:id="serverLabel" text="" />
+                <TextField fx:id="serverField" editable="false"/>
+                <ListView fx:id="serverView" minHeight="200" minWidth="200" />
+            </VBox>
+        </HBox>
+</VBox>
