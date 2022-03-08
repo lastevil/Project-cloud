@@ -4,26 +4,25 @@ import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 
+import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 
 public class ClientController implements Initializable {
     private Path clientDir;
     private Path clientDir2;
     private ServerSettingsDialog serSetDig;
-    private  NetClient client;
+    private  NetClient clientNet;
     private static String HOST;
     private static Integer PORT;
     private static boolean connect = false;
@@ -43,30 +42,79 @@ public class ClientController implements Initializable {
 
     @FXML
     private void upload(ActionEvent actionEvent){
+        String filename = clientView.getSelectionModel().getSelectedItem();
+        if(connect){
+            clientNet.upload(clientDir.resolve(filename));
+        }
+        else{
+            Path selected = clientDir.resolve(filename);
+            Path destFile = Paths.get(clientDir2.normalize().toAbsolutePath().toString(),selected.getFileName().toString());
+            try {
+                Files.copy(selected, destFile,
+                        StandardCopyOption.REPLACE_EXISTING);
+                updateClientView();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 
     @FXML
     public void download(ActionEvent actionEvent) {
+        String filename = serverView.getSelectionModel().getSelectedItem();
+        if (connect){
+                clientNet.download(filename);
+        }
+        else {
+            Path selected = clientDir2.resolve(filename);
+            Path destFile = Paths.get(clientDir.normalize().toAbsolutePath().toString(),selected.getFileName().toString());
+            try {
+                Files.copy(selected, destFile,
+                        StandardCopyOption.REPLACE_EXISTING);
+                updateClientView();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 
     private void updateClientView() {
-        clientField.setText(clientDir.toAbsolutePath().normalize().toString());
         Platform.runLater(() -> {
+            clientField.setText(clientDir.toAbsolutePath().normalize().toString());
             clientView.getItems().clear();
+            if (clientDir.getParent()!=null){
             clientView.getItems().add("...");
+            }
             clientView.getItems()
                     .addAll(clientDir.toFile().list());
         });
+    }
+
+    private void updateServerView() {
         if (!connect){
             Platform.runLater(() -> {
                 serverLabel.setText("this computer");
                 serverField.setText(clientDir2.toAbsolutePath().normalize().toString());
                 serverView.getItems().clear();
-                serverView.getItems().add("...");
+                if (clientDir2.getParent()!=null){
+                    serverView.getItems().add("...");
+                }
                 serverView.getItems()
                         .addAll(clientDir2.toFile().list());
             });
         }
+        else{
+            Platform.runLater(()->{
+                serverLabel.setText(HOST+":"+PORT);
+                serverField.setText(clientNet.getServerPath().toString());
+                serverView.getItems().clear();
+                if (clientNet.getServerPath().getParent()!=null){
+                    serverView.getItems().add("...");
+                }
+                serverView.getItems().addAll(clientNet.getServerPath().toFile().list());
+            });
+        }
+
     }
 
     @Override
@@ -74,6 +122,60 @@ public class ClientController implements Initializable {
             clientDir = Paths.get("\\");
             clientDir2 = Paths.get("\\");
             updateClientView();
+            updateServerView();
+            //обработчик окна файлов компьютера
+            clientView.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2) {
+                String item = clientView.getSelectionModel().getSelectedItem();
+                //если в окне нажали на пустую строку
+                if (item==null){return;}
+                if (item.equals("...")) {
+                    clientDir = clientDir.getParent();
+                    updateClientView();
+                }
+                else {
+                    Path selected = clientDir.resolve(item);
+                    if (selected.toFile().isDirectory()) {
+                        clientDir = selected;
+                        updateClientView();
+                    }
+                }
+            }
+            });
+            //обработчик окна файлов сервера (если нет соединения то сервер = компьютеру)
+                serverView.setOnMouseClicked(e -> {
+                    if (e.getClickCount() == 2) {
+                        String item = serverView.getSelectionModel().getSelectedItem();
+                        //если в окне нажали на пустую строку
+                        if (item==null){return;}
+                        if (item.equals("...")) {
+                            //если не подключен к серверу
+                            if (!connect){
+                                clientDir2 = clientDir2.getParent();
+                                updateServerView();
+                            }
+                            //при подключенном
+                            else{
+
+                            }
+                        }
+                        else {
+                            //если не подключен к серверу
+                            if (!connect){
+                                Path selected = clientDir2.resolve(item);
+                                if (selected.toFile().isDirectory()) {
+                                    clientDir2 = selected;
+                                    updateServerView();
+                                }
+                            }
+                            //при подключенном
+                            else{
+
+                            }
+                        }
+                    }
+                });
+
     }
 
     public void exit(ActionEvent actionEvent) {
@@ -88,7 +190,8 @@ public class ClientController implements Initializable {
             String[] atr = s.get().split(":");
             HOST = atr[0];
             PORT = Integer.parseInt(atr[1]);
-            System.out.println(HOST+":"+PORT);
+            connect=true;
+            clientNet = new NetClient(this,HOST,PORT);
         }
         else {
             Platform.runLater(() -> {
