@@ -1,4 +1,4 @@
-package gb.project.cloud.server;
+package gb.project.cloud.server.message;
 
 public enum MessageType {
     FILE,

@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -78,7 +79,7 @@ public class ClientController implements Initializable {
         }
     }
 
-    private void updateClientView() {
+    public void updateClientView() {
         Platform.runLater(() -> {
             clientField.setText(clientDir.toAbsolutePath().normalize().toString());
             clientView.getItems().clear();
@@ -90,27 +91,26 @@ public class ClientController implements Initializable {
         });
     }
 
-    private void updateServerView() {
+    public void updateServerView(String label,List<String> names) {
         if (!connect){
             Platform.runLater(() -> {
-                serverLabel.setText("this computer");
+                serverLabel.setText(label);
                 serverField.setText(clientDir2.toAbsolutePath().normalize().toString());
                 serverView.getItems().clear();
                 if (clientDir2.getParent()!=null){
                     serverView.getItems().add("...");
                 }
                 serverView.getItems()
-                        .addAll(clientDir2.toFile().list());
+                        .addAll(names);
             });
         }
         else{
             Platform.runLater(()->{
-                serverLabel.setText(HOST+":"+PORT);
+                serverLabel.setText(label);
                 serverField.setText(clientNet.getServerPath().toString());
                 serverView.getItems().clear();
-                if (clientNet.getServerPath().getParent()!=null){
-                    serverView.getItems().add("...");
-                }
+                serverView.getItems().add("...");
+
                 serverView.getItems().addAll(clientNet.getServerPath().toFile().list());
             });
         }
@@ -122,7 +122,8 @@ public class ClientController implements Initializable {
             clientDir = Paths.get("\\");
             clientDir2 = Paths.get("\\");
             updateClientView();
-            updateServerView();
+            List<String> names = List.of(clientDir.toFile().list());
+            updateServerView("this computer",names);
             //обработчик окна файлов компьютера
             clientView.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
@@ -152,7 +153,8 @@ public class ClientController implements Initializable {
                             //если не подключен к серверу
                             if (!connect){
                                 clientDir2 = clientDir2.getParent();
-                                updateServerView();
+                                List<String> names2 = List.of(clientDir2.toFile().list());
+                                updateServerView("this computer",names2);
                             }
                             //при подключенном
                             else{
@@ -165,7 +167,8 @@ public class ClientController implements Initializable {
                                 Path selected = clientDir2.resolve(item);
                                 if (selected.toFile().isDirectory()) {
                                     clientDir2 = selected;
-                                    updateServerView();
+                                    List<String> names2 = List.of(clientDir2.toFile().list());
+                                    updateServerView("this computer",names2);
                                 }
                             }
                             //при подключенном
@@ -190,8 +193,8 @@ public class ClientController implements Initializable {
             String[] atr = s.get().split(":");
             HOST = atr[0];
             PORT = Integer.parseInt(atr[1]);
-            connect=true;
             clientNet = new NetClient(this,HOST,PORT);
+            connect=true;
         }
         else {
             Platform.runLater(() -> {
@@ -200,5 +203,9 @@ public class ClientController implements Initializable {
 
             });
         }
+    }
+
+    public Path getClientDir() {
+        return clientDir;
     }
 }

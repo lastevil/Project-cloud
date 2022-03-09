@@ -1,4 +1,4 @@
-package gb.project.cloud.client.messageRecive;
+package gb.project.cloud.client.message;
 
 import java.io.Serializable;
 

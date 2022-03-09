@@ -1,12 +1,16 @@
 package gb.project.cloud.client;
 
-import gb.project.cloud.client.messageRecive.FileMessage;
-import gb.project.cloud.client.messageRecive.FileRequest;
+import gb.project.cloud.client.message.CloudMessage;
+import gb.project.cloud.client.message.FileMessage;
+import gb.project.cloud.client.message.FileRequest;
+import gb.project.cloud.client.message.ListMessage;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
+import javafx.application.Platform;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class NetClient {
@@ -15,14 +19,21 @@ public class NetClient {
     private ObjectDecoderInputStream ois;
     private ClientController client;
     private Path serverPath;
+    private String host;
+    private Integer port;
+    private Socket socket;
 
     public NetClient(ClientController clientController,String host, Integer port) {
         client = clientController;
-        Socket socket = null;
+        this.host=host;
+        this.port=port;
         try {
             socket = new Socket(host,port);
             oos = new ObjectEncoderOutputStream(socket.getOutputStream());
             ois = new ObjectDecoderInputStream(socket.getInputStream());
+            Thread readThread = new Thread(this::read);
+            readThread.setDaemon(true);
+            readThread.start();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -48,5 +59,26 @@ public class NetClient {
         return serverPath;
     }
 
+    private void read() {
+        try {
+            while (true) {
+                CloudMessage msg =  (CloudMessage) ois.readObject();
+                switch (msg.getMessageType()) {
+                    case FILE:
+                        FileMessage fm = (FileMessage) msg;
+                        Files.write(client.getClientDir().resolve(fm.getName()), fm.getBytes());
+                        client.updateClientView();
+                        break;
+                    case LIST:
+                        ListMessage lm = (ListMessage) msg;
+                        Platform.runLater(() -> {
+                             client.updateServerView(host+":"+port,lm.getFiles());
+                        });
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
 }
