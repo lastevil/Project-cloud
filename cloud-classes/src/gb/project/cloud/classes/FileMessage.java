@@ -1,4 +1,4 @@
-package gb.project.cloud.server.message;
+package gb.project.cloud.classes;
 
 import lombok.Data;
 

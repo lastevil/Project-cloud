@@ -7,8 +7,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 public class ServerSettingsDialog extends Dialog<String> {
         private TextField HOST;
         private TextField PORT;

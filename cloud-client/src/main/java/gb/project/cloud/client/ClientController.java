@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
@@ -91,30 +92,13 @@ public class ClientController implements Initializable {
         });
     }
 
-    public void updateServerView(String label,List<String> names) {
-        if (!connect){
-            Platform.runLater(() -> {
+    public void updateServerView(String label, List<String> names, String path) {
+        Platform.runLater(()->{
                 serverLabel.setText(label);
-                serverField.setText(clientDir2.toAbsolutePath().normalize().toString());
+                serverField.setText(path);
                 serverView.getItems().clear();
-                if (clientDir2.getParent()!=null){
-                    serverView.getItems().add("...");
-                }
-                serverView.getItems()
-                        .addAll(names);
-            });
-        }
-        else{
-            Platform.runLater(()->{
-                serverLabel.setText(label);
-                serverField.setText(clientNet.getServerPath().toString());
-                serverView.getItems().clear();
-                serverView.getItems().add("...");
-
-                serverView.getItems().addAll(clientNet.getServerPath().toFile().list());
-            });
-        }
-
+                serverView.getItems().addAll(names);
+        });
     }
 
     @Override
@@ -123,7 +107,7 @@ public class ClientController implements Initializable {
             clientDir2 = Paths.get("\\");
             updateClientView();
             List<String> names = List.of(clientDir.toFile().list());
-            updateServerView("this computer",names);
+            updateServerView("this computer",names, clientDir2.toAbsolutePath().normalize().toString());
             //обработчик окна файлов компьютера
             clientView.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
@@ -153,12 +137,20 @@ public class ClientController implements Initializable {
                             //если не подключен к серверу
                             if (!connect){
                                 clientDir2 = clientDir2.getParent();
-                                List<String> names2 = List.of(clientDir2.toFile().list());
-                                updateServerView("this computer",names2);
+                                List<String> names2;
+                                if (clientDir2.getParent()!=null){
+                                    names2 = new LinkedList<String>();
+                                    names2.add("...");
+                                    names2.addAll(List.of(clientDir2.toFile().list()));
+                                }else
+                                {
+                                names2 = List.of(clientDir2.toFile().list());
+                                }
+                                updateServerView("this computer",names2, clientDir2.toAbsolutePath().normalize().toString());
                             }
                             //при подключенном
                             else{
-
+                                clientNet.directory(item);
                             }
                         }
                         else {
@@ -167,13 +159,21 @@ public class ClientController implements Initializable {
                                 Path selected = clientDir2.resolve(item);
                                 if (selected.toFile().isDirectory()) {
                                     clientDir2 = selected;
-                                    List<String> names2 = List.of(clientDir2.toFile().list());
-                                    updateServerView("this computer",names2);
+                                    List<String> names2;
+                                    if (clientDir2.getParent()!=null){
+                                        names2 = new LinkedList<String>();
+                                        names2.add("...");
+                                        names2.addAll(List.of(clientDir2.toFile().list()));
+                                    }else
+                                    {
+                                        names2 = List.of(clientDir2.toFile().list());
+                                    }
+                                    updateServerView("this computer",names2,  clientDir2.toAbsolutePath().normalize().toString());
                                 }
                             }
                             //при подключенном
                             else{
-
+                                clientNet.directory(item);
                             }
                         }
                     }

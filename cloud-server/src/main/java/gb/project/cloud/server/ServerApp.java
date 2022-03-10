@@ -30,7 +30,7 @@ public class ServerApp {
                         protected void initChannel(SocketChannel socketChannel) {
                                 socketChannel.pipeline().addLast(
                                         new ObjectEncoder(),
-                                        new ObjectDecoder(ClassResolvers.weakCachingResolver(ClassResolvers.class.getClassLoader())),
+                                        new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
                                         new ServerHandler()
                                 );
                         }

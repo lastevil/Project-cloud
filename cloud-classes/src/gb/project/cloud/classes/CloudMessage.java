@@ -1,4 +1,4 @@
-package gb.project.cloud.client.message;
+package gb.project.cloud.classes;
 
 import java.io.Serializable;
 

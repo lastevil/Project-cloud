@@ -2,13 +2,11 @@ package gb.project.cloud.server;
 
 
 import lombok.extern.slf4j.Slf4j;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import gb.project.cloud.server.message.CloudMessage;
-import gb.project.cloud.server.message.FileMessage;
-import gb.project.cloud.server.message.FileRequest;
-import gb.project.cloud.server.message.ListMessage;
+import gb.project.cloud.classes.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 
@@ -30,6 +28,17 @@ public class ServerHandler extends SimpleChannelInboundHandler<CloudMessage> {
                 FileRequest fr = (FileRequest) cloudMessage;
                 ctx.writeAndFlush(new FileMessage(serverDir.resolve(fr.getName())));
                 break;
+            case DIRECTORY:
+                DirMessage dm = (DirMessage) cloudMessage;
+                Path drm = Paths.get(serverDir.toString(),dm.getFile());
+                if (dm.getFile().equals("...")){
+                    serverDir = serverDir.getParent();
+                }
+                else if(drm.toFile().isDirectory()){
+                    serverDir = drm;
+                }
+                ctx.writeAndFlush(new ListMessage(serverDir));
+                break;
         }
     }
 
@@ -41,13 +50,8 @@ public class ServerHandler extends SimpleChannelInboundHandler<CloudMessage> {
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx){
         log.debug("Client disconnected");
-    }
-
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        log.error("Error: ", cause);
     }
 
 }

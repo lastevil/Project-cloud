@@ -1,9 +1,6 @@
 package gb.project.cloud.client;
 
-import gb.project.cloud.client.message.CloudMessage;
-import gb.project.cloud.client.message.FileMessage;
-import gb.project.cloud.client.message.FileRequest;
-import gb.project.cloud.client.message.ListMessage;
+import gb.project.cloud.classes.*;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import javafx.application.Platform;
@@ -18,7 +15,6 @@ public class NetClient {
     private ObjectEncoderOutputStream oos;
     private ObjectDecoderInputStream ois;
     private ClientController client;
-    private Path serverPath;
     private String host;
     private Integer port;
     private Socket socket;
@@ -55,8 +51,12 @@ public class NetClient {
         }
     }
 
-    public Path getServerPath() {
-        return serverPath;
+    public void directory(String dir){
+        try {
+            oos.writeObject(new DirMessage(dir));
+        } catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     private void read() {
@@ -72,7 +72,7 @@ public class NetClient {
                     case LIST:
                         ListMessage lm = (ListMessage) msg;
                         Platform.runLater(() -> {
-                             client.updateServerView(host+":"+port,lm.getFiles());
+                             client.updateServerView(host+":"+port,lm.getFiles(),lm.getPath());
                         });
                 }
             }
