@@ -34,7 +34,7 @@
             <VBox HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
                 <Label fx:id="leftLabel" text="This computer" />
                 <TextField fx:id="clientField" editable="false"/>
-                <ListView fx:id="clientView" minHeight="200" minWidth="200" />
+                <ListView fx:id="clientView" VBox.vgrow="ALWAYS"/>
             </VBox>
             <VBox alignment="CENTER" >
                 <padding>
@@ -47,7 +47,7 @@
             <VBox HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
                 <Label fx:id="serverLabel" text="" />
                 <TextField fx:id="serverField" editable="false"/>
-                <ListView fx:id="serverView" minHeight="200" minWidth="200" />
+                <ListView fx:id="serverView" VBox.vgrow="ALWAYS"/>
             </VBox>
         </HBox>
 </VBox>

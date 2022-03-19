@@ -14,6 +14,8 @@ public class ClientApp extends Application {
         Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("Cloud exchange");
         stage.setScene(scene);
+        stage.setMinHeight(320);
+        stage.setMinWidth(500);
         stage.show();
     }
     public static void main(String[] args) {
