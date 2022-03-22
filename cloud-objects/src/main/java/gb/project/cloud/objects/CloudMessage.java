@@ -1,4 +1,4 @@
-package gb.project.cloud.classes;
+package gb.project.cloud.objects;
 
 import java.io.Serializable;
 

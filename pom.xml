@@ -11,7 +11,7 @@
     <modules>
         <module>cloud-server</module>
         <module>cloud-client</module>
-        <module>cloud-classes</module>
+        <module>cloud-objects</module>
     </modules>
 
     <properties>

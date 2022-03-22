@@ -1,5 +1,5 @@
 module cloud.server {
-    requires cloud.classes;
+    requires cloud.objects;
     requires lombok;
     requires io.netty.transport;
     requires io.netty.codec;

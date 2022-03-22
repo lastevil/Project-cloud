@@ -1,6 +1,6 @@
 package gb.project.cloud.client;
 
-import gb.project.cloud.classes.*;
+import gb.project.cloud.objects.*;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
 import javafx.application.Platform;

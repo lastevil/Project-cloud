@@ -9,8 +9,11 @@
         <outputRelativeToContentRoot value="true" />
         <module name="cloud-client" />
         <module name="cloud-server" />
-        <module name="cloud-classes" />
+        <module name="cloud-objects" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="cloud-classes" target="11" />
+    </bytecodeTargetLevel>
   </component>
 </project>
