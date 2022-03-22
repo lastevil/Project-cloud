@@ -9,6 +9,7 @@
         <outputRelativeToContentRoot value="true" />
         <module name="cloud-client" />
         <module name="cloud-server" />
+        <module name="cloud-classes" />
       </profile>
     </annotationProcessing>
   </component>
