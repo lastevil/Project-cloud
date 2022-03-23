@@ -15,18 +15,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.ResourceBundle;
+import java.util.*;
 
 public class ClientController implements Initializable {
     private Path clientDir;
     private Path clientDir2;
-    private ServerSettingsDialog serSetDig;
-    private  NetClient clientNet;
-    private static String HOST;
-    private static Integer PORT;
+    private NetClient clientNet;
     private static boolean connect = false;
 
 
@@ -43,14 +37,13 @@ public class ClientController implements Initializable {
 
 
     @FXML
-    private void upload(ActionEvent actionEvent){
+    private void upload(ActionEvent actionEvent) {
         String filename = clientView.getSelectionModel().getSelectedItem();
-        if(connect){
+        if (connect) {
             clientNet.upload(clientDir.resolve(filename));
-        }
-        else{
+        } else {
             Path selected = clientDir.resolve(filename);
-            Path destFile = Paths.get(clientDir2.normalize().toAbsolutePath().toString(),selected.getFileName().toString());
+            Path destFile = Paths.get(clientDir2.normalize().toAbsolutePath().toString(), selected.getFileName().toString());
             try {
                 Files.copy(selected, destFile,
                         StandardCopyOption.REPLACE_EXISTING);
@@ -64,12 +57,11 @@ public class ClientController implements Initializable {
     @FXML
     public void download(ActionEvent actionEvent) {
         String filename = serverView.getSelectionModel().getSelectedItem();
-        if (connect){
-                clientNet.download(filename);
-        }
-        else {
+        if (connect) {
+            clientNet.download(filename);
+        } else {
             Path selected = clientDir2.resolve(filename);
-            Path destFile = Paths.get(clientDir.normalize().toAbsolutePath().toString(),selected.getFileName().toString());
+            Path destFile = Paths.get(clientDir.normalize().toAbsolutePath().toString(), selected.getFileName().toString());
             try {
                 Files.copy(selected, destFile,
                         StandardCopyOption.REPLACE_EXISTING);
@@ -84,8 +76,8 @@ public class ClientController implements Initializable {
         Platform.runLater(() -> {
             clientField.setText(clientDir.toAbsolutePath().normalize().toString());
             clientView.getItems().clear();
-            if (clientDir.getParent()!=null){
-            clientView.getItems().add("...");
+            if (clientDir.getParent() != null) {
+                clientView.getItems().add("...");
             }
             clientView.getItems()
                     .addAll(clientDir.toFile().list());
@@ -93,32 +85,33 @@ public class ClientController implements Initializable {
     }
 
     public void updateServerView(String label, List<String> names, String path) {
-        Platform.runLater(()->{
-                serverLabel.setText(label);
-                serverField.setText(path);
-                serverView.getItems().clear();
-                serverView.getItems().addAll(names);
+        Platform.runLater(() -> {
+            serverLabel.setText(label);
+            serverField.setText(path);
+            serverView.getItems().clear();
+            serverView.getItems().addAll(names);
         });
     }
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-            clientDir = Paths.get("\\");
-            clientDir2 = Paths.get("\\");
-            updateClientView();
-            List<String> names = List.of(clientDir.toFile().list());
-            updateServerView("this computer",names, clientDir2.toAbsolutePath().normalize().toString());
-            //обработчик окна файлов компьютера
-            clientView.setOnMouseClicked(e -> {
+        clientDir = Paths.get("\\");
+        clientDir2 = Paths.get("\\");
+        updateClientView();
+        List<String> names = List.of(Objects.requireNonNull(clientDir.toFile().list()));
+        updateServerView("this computer", names, clientDir2.toAbsolutePath().normalize().toString());
+        //обработчик окна файлов компьютера
+        clientView.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
                 String item = clientView.getSelectionModel().getSelectedItem();
                 //если в окне нажали на пустую строку
-                if (item==null){return;}
+                if (item == null) {
+                    return;
+                }
                 if (item.equals("...")) {
                     clientDir = clientDir.getParent();
                     updateClientView();
-                }
-                else {
+                } else {
                     Path selected = clientDir.resolve(item);
                     if (selected.toFile().isDirectory()) {
                         clientDir = selected;
@@ -126,77 +119,78 @@ public class ClientController implements Initializable {
                     }
                 }
             }
-            });
-            //обработчик окна файлов сервера (если нет соединения то сервер = компьютеру)
-                serverView.setOnMouseClicked(e -> {
-                    if (e.getClickCount() == 2) {
-                        String item = serverView.getSelectionModel().getSelectedItem();
-                        //если в окне нажали на пустую строку
-                        if (item==null){return;}
-                        if (item.equals("...")) {
-                            //если не подключен к серверу
-                            if (!connect){
-                                clientDir2 = clientDir2.getParent();
-                                List<String> names2;
-                                if (clientDir2.getParent()!=null){
-                                    names2 = new LinkedList<String>();
-                                    names2.add("...");
-                                    names2.addAll(List.of(clientDir2.toFile().list()));
-                                }else
-                                {
-                                names2 = List.of(clientDir2.toFile().list());
-                                }
-                                updateServerView("this computer",names2, clientDir2.toAbsolutePath().normalize().toString());
-                            }
-                            //при подключенном
-                            else{
-                                clientNet.directory(item);
-                            }
+        });
+        //обработчик окна файлов сервера (если нет соединения то сервер = компьютеру)
+        serverView.setOnMouseClicked(e -> {
+            if (e.getClickCount() == 2) {
+                String item = serverView.getSelectionModel().getSelectedItem();
+                //если в окне нажали на пустую строку
+                if (item == null) {
+                    return;
+                }
+                if (item.equals("...")) {
+                    //если не подключен к серверу
+                    if (!connect) {
+                        clientDir2 = clientDir2.getParent();
+                        List<String> names2;
+                        if (clientDir2.getParent() != null) {
+                            names2 = new LinkedList<>();
+                            names2.add("...");
+                            names2.addAll(List.of(Objects.requireNonNull(clientDir2.toFile().list())));
+                        } else {
+                            names2 = List.of(Objects.requireNonNull(clientDir2.toFile().list()));
                         }
-                        else {
-                            //если не подключен к серверу
-                            if (!connect){
-                                Path selected = clientDir2.resolve(item);
-                                if (selected.toFile().isDirectory()) {
-                                    clientDir2 = selected;
-                                    List<String> names2;
-                                    if (clientDir2.getParent()!=null){
-                                        names2 = new LinkedList<String>();
-                                        names2.add("...");
-                                        names2.addAll(List.of(clientDir2.toFile().list()));
-                                    }else
-                                    {
-                                        names2 = List.of(clientDir2.toFile().list());
-                                    }
-                                    updateServerView("this computer",names2,  clientDir2.toAbsolutePath().normalize().toString());
-                                }
+                        updateServerView("this computer", names2, clientDir2.toAbsolutePath().normalize().toString());
+                    }
+                    //при подключенном
+                    else {
+                        clientNet.directory(item);
+                    }
+                } else {
+                    //если не подключен к серверу
+                    if (!connect) {
+                        Path selected = clientDir2.resolve(item);
+                        if (selected.toFile().isDirectory()) {
+                            clientDir2 = selected;
+                            List<String> names2;
+                            if (clientDir2.getParent() != null) {
+                                names2 = new LinkedList<>();
+                                names2.add("...");
+                                names2.addAll(List.of(Objects.requireNonNull(clientDir2.toFile().list())));
+                            } else {
+                                names2 = List.of(Objects.requireNonNull(clientDir2.toFile().list()));
                             }
-                            //при подключенном
-                            else{
-                                clientNet.directory(item);
-                            }
+                            updateServerView("this computer", names2, clientDir2.toAbsolutePath().normalize().toString());
                         }
                     }
-                });
+                    //при подключенном
+                    else {
+                        clientNet.directory(item);
+                    }
+                }
+            }
+        });
 
     }
 
     public void exit(ActionEvent actionEvent) {
+        if (connect) {
+            clientNet.closeChannel();
+        }
         System.exit(0);
     }
 
     public void setConnection(ActionEvent actionEvent) {
-            serSetDig = new ServerSettingsDialog();
-            serSetDig.DialogForm("Set server settings");
-            Optional<String> s = serSetDig.showAndWait();
-        if (!s.isEmpty()){
+        ServerSettingsDialog serSetDig = new ServerSettingsDialog();
+        serSetDig.DialogForm("Set server settings");
+        Optional<String> s = serSetDig.showAndWait();
+        if (s.isPresent()) {
             String[] atr = s.get().split(":");
-            HOST = atr[0];
-            PORT = Integer.parseInt(atr[1]);
-            clientNet = new NetClient(this,HOST,PORT);
-            connect=true;
-        }
-        else {
+            String HOST = atr[0];
+            Integer PORT = Integer.parseInt(atr[1]);
+            clientNet = new NetClient(this, HOST, PORT);
+            connect = true;
+        } else {
             Platform.runLater(() -> {
                 serverLabel.setTextFill(Color.RED);
                 serverLabel.setText("Неверные данные подключения\n");

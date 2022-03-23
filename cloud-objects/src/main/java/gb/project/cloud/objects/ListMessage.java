@@ -16,17 +16,16 @@ public class ListMessage implements CloudMessage {
     private final String path;
 
     public ListMessage(Path path) throws IOException {
-        if (path.getParent()!=null){
-            files=new LinkedList<String>();
+        if (path.getParent() != null) {
+            files = new LinkedList<>();
             files.add("...");
-            files.addAll( Files.list(path)
+            files.addAll(Files.list(path)
                     .map(p -> p.getFileName().toString())
                     .collect(Collectors.toList()));
-        }
-        else {
-        files = Files.list(path)
-                .map(p -> p.getFileName().toString())
-                .collect(Collectors.toList());
+        } else {
+            files = Files.list(path)
+                    .map(p -> p.getFileName().toString())
+                    .collect(Collectors.toList());
         }
         this.path = path.toString();
     }

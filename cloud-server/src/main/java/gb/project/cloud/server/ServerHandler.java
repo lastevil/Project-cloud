@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import gb.project.cloud.objects.*;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -30,27 +31,27 @@ public class ServerHandler extends SimpleChannelInboundHandler<CloudMessage> {
                 break;
             case DIRECTORY:
                 DirMessage dm = (DirMessage) cloudMessage;
-                Path drm = Paths.get(serverDir.toString(),dm.getFile());
-                if (dm.getFile().equals("...")){
+                Path drm = Paths.get(serverDir.toString(), dm.getFile());
+                if (dm.getFile().equals("...")) {
                     serverDir = serverDir.getParent();
-                }
-                else if(drm.toFile().isDirectory()){
+                } else if (drm.toFile().isDirectory()) {
                     serverDir = drm;
                 }
                 ctx.writeAndFlush(new ListMessage(serverDir));
                 break;
+            case GET_LIST:
+                ctx.writeAndFlush(new ListMessage(serverDir));
         }
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) {
         log.debug("Client connected");
         serverDir = Paths.get("server");
-        ctx.writeAndFlush(new ListMessage(serverDir));
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx){
+    public void channelInactive(ChannelHandlerContext ctx) {
         log.debug("Client disconnected");
     }
 

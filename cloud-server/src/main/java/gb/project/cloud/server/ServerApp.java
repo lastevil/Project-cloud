@@ -13,28 +13,27 @@ import io.netty.handler.codec.serialization.ObjectEncoder;
 import lombok.extern.slf4j.Slf4j;
 
 
-
 @Slf4j
 public class ServerApp {
-    private static final int PORT =8189;
+    private static final int PORT = 8189;
 
     public static void main(String[] args) {
         EventLoopGroup auth = new NioEventLoopGroup(1);
         EventLoopGroup worker = new NioEventLoopGroup();
         ServerBootstrap sb = new ServerBootstrap();
         try {
-            sb.group(auth,worker)
+            sb.group(auth, worker)
                     .channel(NioServerSocketChannel.class)
                     .childHandler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) {
-                                socketChannel.pipeline().addLast(
-                                        new ObjectEncoder(),
-                                        new ObjectDecoder(1048576*100,ClassResolvers.cacheDisabled(null)),
-                                        new ServerHandler()
-                                );
+                            socketChannel.pipeline().addLast(
+                                    new ObjectEncoder(),
+                                    new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
+                                    new ServerHandler()
+                            );
                         }
-                });
+                    });
             ChannelFuture future = sb.bind(PORT).sync();
             log.debug("Server started...");
             future.channel().closeFuture().sync();
