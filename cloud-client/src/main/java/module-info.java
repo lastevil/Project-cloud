@@ -9,4 +9,6 @@ module gb.project.cloud.client.cloudclient {
 
     opens gb.project.cloud.client to javafx.fxml;
     exports gb.project.cloud.client;
+    exports gb.project.cloud.client.dialog;
+    opens gb.project.cloud.client.dialog to javafx.fxml;
 }

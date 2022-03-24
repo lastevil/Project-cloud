@@ -6,6 +6,8 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
+import io.netty.handler.codec.Delimiters;
 import io.netty.handler.codec.serialization.*;
 import javafx.application.Platform;
 import lombok.extern.slf4j.Slf4j;
@@ -27,23 +29,23 @@ public class NetClient {
         client = clientController;
         this.host = host;
         this.port = port;
-        new Thread(() -> {
+        Thread net = new Thread(() -> {
             EventLoopGroup workerGroup = new NioEventLoopGroup();
             try {
                 Bootstrap b = new Bootstrap();
                 b.group(workerGroup)
                         .channel(NioSocketChannel.class)
-                        //.option(ChannelOption.SO_KEEPALIVE, true)
                         .handler(new ChannelInitializer<SocketChannel>() {
                             @Override
                             public void initChannel(SocketChannel ch) {
                                 sChannel = ch;
                                 ch.pipeline().addLast(
+                                        new ObjectDecoder(1487500 * 100, ClassResolvers.cacheDisabled(null)),
                                         new ObjectEncoder(),
-                                        new ObjectDecoder(ClassResolvers.cacheDisabled(null)),
                                         new ClientHandler()
                                 );
                             }
+
                         });
                 ChannelFuture f = b.connect(host, port).sync();
                 f.channel().closeFuture().sync();
@@ -53,7 +55,9 @@ public class NetClient {
                 workerGroup.shutdownGracefully();
                 log.error("Connection data error");
             }
-        }).start();
+        });
+        net.setDaemon(true);
+        net.start();
     }
 
     public void download(String downloadedFile) {
@@ -76,16 +80,24 @@ public class NetClient {
         sChannel.close();
     }
 
-    public class ClientHandler
+    public void login(String login, String pass){
+        sChannel.writeAndFlush(new AuthMessage(1,login,pass));
+    }
+
+    public void registration(String login, String pass){
+        sChannel.writeAndFlush(new AuthMessage(2,login,pass));
+    }
+
+    private class ClientHandler
             extends SimpleChannelInboundHandler<CloudMessage> {
 
         public void channelActive(ChannelHandlerContext ctx) {
             log.debug("Client connected to server");
-            ctx.writeAndFlush(new GetListMessage());
         }
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, CloudMessage cm) throws Exception {
+            log.debug(cm.toString());
             switch (cm.getMessageType()) {
                 case FILE:
                     FileMessage fm = (FileMessage) cm;
@@ -96,6 +108,14 @@ public class NetClient {
                     ListMessage lm = (ListMessage) cm;
                     Platform.runLater(() -> client.updateServerView(host + ":" + port, lm.getFiles(), lm.getPath()));
                     break;
+                case AUTH:
+                    AuthMessage am = (AuthMessage) cm;
+                    if (am.getTypeAuth()==0){
+                        Platform.runLater(client::choseWindow);
+                    }
+                    else{
+                        Platform.runLater(() -> client.userDataWindow("Login",am.getPassword()));
+                    }
             }
         }
     }

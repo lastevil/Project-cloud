@@ -1,6 +1,8 @@
 package gb.project.cloud.server;
 
 
+import gb.project.cloud.server.auth.AuthService;
+import gb.project.cloud.server.auth.DBConnect;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.file.Files;
@@ -15,6 +17,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 public class ServerHandler extends SimpleChannelInboundHandler<CloudMessage> {
 
     private Path serverDir;
+    private int count;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, CloudMessage cloudMessage) throws Exception {
@@ -41,6 +44,29 @@ public class ServerHandler extends SimpleChannelInboundHandler<CloudMessage> {
                 break;
             case GET_LIST:
                 ctx.writeAndFlush(new ListMessage(serverDir));
+                break;
+            case AUTH:
+                AuthMessage am = (AuthMessage) cloudMessage;
+                AuthService db = new AuthService();
+                db.open();
+                if (am.getTypeAuth() == 1) {
+                    if (db.existUserByLoginPass(am.getLogin(), am.getPassword())) {
+                        serverDir = Paths.get(serverDir.toString(), am.getLogin());
+                        ctx.writeAndFlush(new ListMessage(serverDir));
+                    } else {
+                        ctx.writeAndFlush(new AuthMessage(1, "error", "wrong user data"));
+                    }
+                } else {
+                    if (db.registration(am.getLogin(), am.getPassword())) {
+                        serverDir = Paths.get(serverDir.toString(), am.getLogin());
+                        Files.createDirectories(serverDir);
+                        ctx.writeAndFlush(new ListMessage(serverDir));
+                    } else {
+                        ctx.writeAndFlush(new AuthMessage(1, "error", "user exist!"));
+                    }
+                }
+                db.close();
+                break;
         }
     }
 
@@ -48,6 +74,8 @@ public class ServerHandler extends SimpleChannelInboundHandler<CloudMessage> {
     public void channelActive(ChannelHandlerContext ctx) {
         log.debug("Client connected");
         serverDir = Paths.get("server");
+        AuthService db = new AuthService();
+        ctx.writeAndFlush(new AuthMessage(0, "title", "Please authenticate or register"));
     }
 
     @Override

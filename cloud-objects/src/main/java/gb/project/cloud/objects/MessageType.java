@@ -5,5 +5,6 @@ public enum MessageType {
     LIST,
     FILE_REQUEST,
     DIRECTORY,
-    GET_LIST
+    GET_LIST,
+    AUTH
 }

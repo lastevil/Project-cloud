@@ -22,7 +22,7 @@ public class ClientApp extends Application {
         stage.setMinWidth(500);
         stage.show();
         controller = fxmlLoader.getController();
-        stage.setOnCloseRequest(event -> controller.exit(new ActionEvent()));
+        stage.setOnCloseRequest(event -> controller.exit());
     }
 
     public static void main(String[] args) {

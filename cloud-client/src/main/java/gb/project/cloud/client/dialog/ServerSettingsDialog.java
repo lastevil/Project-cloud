@@ -1,4 +1,4 @@
-package gb.project.cloud.client;
+package gb.project.cloud.client.dialog;
 
 import javafx.application.Platform;
 import javafx.geometry.Insets;

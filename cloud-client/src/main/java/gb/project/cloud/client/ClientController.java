@@ -1,13 +1,14 @@
 package gb.project.cloud.client;
 
+import gb.project.cloud.client.dialog.*;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
+import lombok.Data;
 
 import java.io.IOException;
 import java.net.URL;
@@ -17,12 +18,12 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
+@Data
 public class ClientController implements Initializable {
     private Path clientDir;
     private Path clientDir2;
     private NetClient clientNet;
     private static boolean connect = false;
-
 
     @FXML
     private TextField clientField;
@@ -35,9 +36,8 @@ public class ClientController implements Initializable {
     @FXML
     private TextField serverField;
 
-
     @FXML
-    private void upload(ActionEvent actionEvent) {
+    private void upload() {
         String filename = clientView.getSelectionModel().getSelectedItem();
         if (connect) {
             clientNet.upload(clientDir.resolve(filename));
@@ -55,7 +55,7 @@ public class ClientController implements Initializable {
     }
 
     @FXML
-    public void download(ActionEvent actionEvent) {
+    public void download() {
         String filename = serverView.getSelectionModel().getSelectedItem();
         if (connect) {
             clientNet.download(filename);
@@ -173,14 +173,18 @@ public class ClientController implements Initializable {
 
     }
 
-    public void exit(ActionEvent actionEvent) {
+    public void exit() {
         if (connect) {
             clientNet.closeChannel();
         }
         System.exit(0);
     }
 
-    public void setConnection(ActionEvent actionEvent) {
+    public Path getClientDir() {
+        return clientDir;
+    }
+
+    public void setConnection() {
         ServerSettingsDialog serSetDig = new ServerSettingsDialog();
         serSetDig.DialogForm("Set server settings");
         Optional<String> s = serSetDig.showAndWait();
@@ -199,7 +203,36 @@ public class ClientController implements Initializable {
         }
     }
 
-    public Path getClientDir() {
-        return clientDir;
+    public void choseWindow() {
+        ChoseAuthDialog chseDiag = new ChoseAuthDialog();
+        chseDiag.DialogForm("");
+        Optional<String> s = chseDiag.showAndWait();
+        if (s.isPresent()) {
+            if (s.get().equals("1")) {
+                String[] userData = userDataWindow("Authenticate", "");
+                clientNet.login(userData[0], userData[1]);
+            } else {
+                String[] userData = userDataWindow("Registration", "");
+                clientNet.registration(userData[0], userData[1]);
+            }
+        }
+    }
+
+    public String[] userDataWindow(String title, String label) {
+        LogDialog dialog = new LogDialog();
+        dialog.DialogForm(title, label);
+        Optional<String> s = dialog.showAndWait();
+        if (s.isPresent()) {
+            if (s.get().equals("error")) {
+                return userDataWindow(title, "Неверные данные");
+            }
+            else{
+                return s.get().split(" ");
+            }
+        }
+        connect = false;
+        updateServerView("this computer", List.of(Objects.requireNonNull(clientDir2.toFile().list())), clientDir2.toString());
+        clientNet.closeChannel();
+        return null;
     }
 }
