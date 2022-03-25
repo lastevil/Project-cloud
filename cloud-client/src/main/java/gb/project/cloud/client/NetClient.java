@@ -88,6 +88,10 @@ public class NetClient {
         sChannel.writeAndFlush(new AuthMessage(2,login,pass));
     }
 
+    public void makeDir(String s) {
+        sChannel.writeAndFlush(new MkdirMassage(s));
+    }
+
     private class ClientHandler
             extends SimpleChannelInboundHandler<CloudMessage> {
 

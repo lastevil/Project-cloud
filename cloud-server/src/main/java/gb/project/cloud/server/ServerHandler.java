@@ -67,6 +67,12 @@ public class ServerHandler extends SimpleChannelInboundHandler<CloudMessage> {
                 }
                 db.close();
                 break;
+            case MKDIR:
+                MkdirMassage mkdir = (MkdirMassage) cloudMessage;
+                Path dir = Paths.get(serverDir.toString(), mkdir.getDir());
+                Files.createDirectories(dir);
+                ctx.writeAndFlush(new ListMessage(serverDir));
+                break;
         }
     }
 

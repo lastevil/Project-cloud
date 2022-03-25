@@ -16,7 +16,8 @@ public class ListMessage implements CloudMessage {
     private final String path;
 
     public ListMessage(Path path) throws IOException {
-        if (path.getParent() != null) {
+        String[] s = path.toString().split("\\\\");
+        if (s.length>2) {
             files = new LinkedList<>();
             files.add("...");
             files.addAll(Files.list(path)
