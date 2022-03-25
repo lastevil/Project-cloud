@@ -2,10 +2,10 @@ package gb.project.cloud.server;
 
 
 import gb.project.cloud.server.auth.AuthService;
-import gb.project.cloud.server.auth.DBConnect;
+import gb.project.cloud.server.service.MessageResponse;
+import gb.project.cloud.server.service.ServiceMessage;
 import lombok.extern.slf4j.Slf4j;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -17,63 +17,13 @@ import io.netty.channel.SimpleChannelInboundHandler;
 public class ServerHandler extends SimpleChannelInboundHandler<CloudMessage> {
 
     private Path serverDir;
-    private int count;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, CloudMessage cloudMessage) throws Exception {
         log.debug(cloudMessage.toString());
-        switch (cloudMessage.getMessageType()) {
-            case FILE:
-                FileMessage fm = (FileMessage) cloudMessage;
-                Files.write(serverDir.resolve(fm.getName()), fm.getBytes());
-                ctx.writeAndFlush(new ListMessage(serverDir));
-                break;
-            case FILE_REQUEST:
-                FileRequest fr = (FileRequest) cloudMessage;
-                ctx.writeAndFlush(new FileMessage(serverDir.resolve(fr.getName())));
-                break;
-            case DIRECTORY:
-                DirMessage dm = (DirMessage) cloudMessage;
-                Path drm = Paths.get(serverDir.toString(), dm.getFile());
-                if (dm.getFile().equals("...")) {
-                    serverDir = serverDir.getParent();
-                } else if (drm.toFile().isDirectory()) {
-                    serverDir = drm;
-                }
-                ctx.writeAndFlush(new ListMessage(serverDir));
-                break;
-            case GET_LIST:
-                ctx.writeAndFlush(new ListMessage(serverDir));
-                break;
-            case AUTH:
-                AuthMessage am = (AuthMessage) cloudMessage;
-                AuthService db = new AuthService();
-                db.open();
-                if (am.getTypeAuth() == 1) {
-                    if (db.existUserByLoginPass(am.getLogin(), am.getPassword())) {
-                        serverDir = Paths.get(serverDir.toString(), am.getLogin());
-                        ctx.writeAndFlush(new ListMessage(serverDir));
-                    } else {
-                        ctx.writeAndFlush(new AuthMessage(1, "error", "wrong user data"));
-                    }
-                } else {
-                    if (db.registration(am.getLogin(), am.getPassword())) {
-                        serverDir = Paths.get(serverDir.toString(), am.getLogin());
-                        Files.createDirectories(serverDir);
-                        ctx.writeAndFlush(new ListMessage(serverDir));
-                    } else {
-                        ctx.writeAndFlush(new AuthMessage(1, "error", "user exist!"));
-                    }
-                }
-                db.close();
-                break;
-            case MKDIR:
-                MkdirMassage mkdir = (MkdirMassage) cloudMessage;
-                Path dir = Paths.get(serverDir.toString(), mkdir.getDir());
-                Files.createDirectories(dir);
-                ctx.writeAndFlush(new ListMessage(serverDir));
-                break;
-        }
+        MessageResponse mr = new MessageResponse(this);
+        ServiceMessage sm = mr.getResponseMap().get(cloudMessage.getMessageType());
+        sm.messageChecker(ctx,cloudMessage);
     }
 
     @Override
@@ -89,4 +39,11 @@ public class ServerHandler extends SimpleChannelInboundHandler<CloudMessage> {
         log.debug("Client disconnected");
     }
 
+    public Path getServerDir() {
+        return serverDir;
+    }
+
+    public void setServerDir(Path serverDir) {
+        this.serverDir = serverDir;
+    }
 }

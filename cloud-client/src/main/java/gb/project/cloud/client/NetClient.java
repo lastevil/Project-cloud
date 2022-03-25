@@ -1,13 +1,13 @@
 package gb.project.cloud.client;
 
+import gb.project.cloud.client.service.MessageResponse;
+import gb.project.cloud.client.service.ServiceMessage;
 import gb.project.cloud.objects.*;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.DelimiterBasedFrameDecoder;
-import io.netty.handler.codec.Delimiters;
 import io.netty.handler.codec.serialization.*;
 import javafx.application.Platform;
 import lombok.extern.slf4j.Slf4j;
@@ -102,25 +102,9 @@ public class NetClient {
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, CloudMessage cm) throws Exception {
             log.debug(cm.toString());
-            switch (cm.getMessageType()) {
-                case FILE:
-                    FileMessage fm = (FileMessage) cm;
-                    Files.write(client.getClientDir().resolve(fm.getName()), fm.getBytes());
-                    client.updateClientView();
-                    break;
-                case LIST:
-                    ListMessage lm = (ListMessage) cm;
-                    Platform.runLater(() -> client.updateServerView(host + ":" + port, lm.getFiles(), lm.getPath()));
-                    break;
-                case AUTH:
-                    AuthMessage am = (AuthMessage) cm;
-                    if (am.getTypeAuth()==0){
-                        Platform.runLater(client::choseWindow);
-                    }
-                    else{
-                        Platform.runLater(() -> client.userDataWindow("Login",am.getPassword()));
-                    }
-            }
+            MessageResponse mr = new MessageResponse(client,host,port);
+            ServiceMessage sm = mr.getResponseMap().get(cm.getMessageType());
+            sm.messageChecker(ctx,cm);
         }
     }
 }

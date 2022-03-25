@@ -46,7 +46,7 @@
             <Button fx:id="bGet" mnemonicParsing="false" minHeight="26.0" minWidth="43.0" text="Get"
                     onAction="#download"/>
             <Label></Label>
-            <Button fx:id="bDir" mnemonicParsing="false" minHeight="26.0" minWidth="43.0" text="Nen Dir"
+            <Button fx:id="bDir" mnemonicParsing="false" minHeight="26.0" minWidth="43.0" text="New Dir"
                     onAction="#mkdir"/>
         </VBox>
         <VBox HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
