@@ -9,11 +9,9 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.serialization.*;
-import javafx.application.Platform;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Slf4j
@@ -54,6 +52,7 @@ public class NetClient {
             } finally {
                 workerGroup.shutdownGracefully();
                 log.error("Connection data error");
+                client.setDisconnect();
             }
         });
         net.setDaemon(true);
@@ -77,15 +76,17 @@ public class NetClient {
     }
 
     public void closeChannel() {
-        sChannel.close();
+        if (sChannel != null) {
+            sChannel.close();
+        }
     }
 
-    public void login(String login, String pass){
-        sChannel.writeAndFlush(new AuthMessage(1,login,pass));
+    public void login(String login, String pass) {
+        sChannel.writeAndFlush(new AuthMessage(1, login, pass));
     }
 
-    public void registration(String login, String pass){
-        sChannel.writeAndFlush(new AuthMessage(2,login,pass));
+    public void registration(String login, String pass) {
+        sChannel.writeAndFlush(new AuthMessage(2, login, pass));
     }
 
     public void makeDir(String s) {
@@ -102,9 +103,9 @@ public class NetClient {
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, CloudMessage cm) throws Exception {
             log.debug(cm.toString());
-            MessageResponse mr = new MessageResponse(client,host,port);
+            MessageResponse mr = new MessageResponse(client, host, port);
             ServiceMessage sm = mr.getResponseMap().get(cm.getMessageType());
-            sm.messageChecker(ctx,cm);
+            sm.messageChecker(ctx, cm);
         }
     }
 }

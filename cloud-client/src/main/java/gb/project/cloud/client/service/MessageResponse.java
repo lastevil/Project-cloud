@@ -18,7 +18,8 @@ public class MessageResponse {
             if (am.getTypeAuth() == 0) {
                 Platform.runLater(client::choseWindow);
             } else {
-                Platform.runLater(() -> client.userDataWindow("Login", am.getPassword()));
+                Platform.runLater(client::enterToServer);
+                Platform.runLater(() -> client.messageDialog("Error", "Wrong username or password"));
             }
         });
         //FILE

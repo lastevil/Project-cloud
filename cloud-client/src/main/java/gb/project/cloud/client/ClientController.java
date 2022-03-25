@@ -6,6 +6,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
 import lombok.Data;
@@ -35,6 +36,10 @@ public class ClientController implements Initializable {
     private Label serverLabel;
     @FXML
     private TextField serverField;
+    @FXML
+    private MenuItem close;
+    @FXML
+    private MenuItem enter;
 
     @FXML
     private void upload() {
@@ -199,6 +204,9 @@ public class ClientController implements Initializable {
             Integer PORT = Integer.parseInt(atr[1]);
             clientNet = new NetClient(this, HOST, PORT);
             connect = true;
+            close.setDisable(false);
+            enter.setDisable(false);
+
         } else {
             Platform.runLater(() -> {
                 serverLabel.setTextFill(Color.RED);
@@ -233,11 +241,7 @@ public class ClientController implements Initializable {
                 return s.get().split(" ");
             }
         }
-        connect = false;
-        updateServerView("this computer",
-                List.of(Objects.requireNonNull(clientDir2.toFile().list())),
-                clientDir2.toString());
-        clientNet.closeChannel();
+        setDisconnect();
         return null;
     }
 
@@ -256,5 +260,31 @@ public class ClientController implements Initializable {
                         clientDir2.toString());
             }
         }
+    }
+
+    public void setDisconnect() {
+        clientNet.closeChannel();
+        connect = false;
+        Platform.runLater(() -> messageDialog("Warring", "Server disconnected"));
+        updateServerView("this computer",
+                List.of(Objects.requireNonNull(clientDir2.toFile().list())),
+                clientDir2.toAbsolutePath().toString());
+        close.setDisable(true);
+        enter.setDisable(true);
+    }
+
+    public void messageDialog(String title, String label) {
+        InfoDialog info = new InfoDialog();
+        info.DialogForm(title, label);
+        info.showAndWait();
+    }
+
+    public void enterToServer() {
+        String[] a = userDataWindow("!", "Enter userdata");
+        clientNet.login(a[0],a[1]);
+    }
+
+    public void closeConnection() {
+        setDisconnect();
     }
 }

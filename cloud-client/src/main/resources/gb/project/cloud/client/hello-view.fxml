@@ -23,6 +23,8 @@
             <Menu mnemonicParsing="false" text="Settings">
                 <items>
                     <MenuItem mnemonicParsing="false" text="Connect" onAction="#setConnection"/>
+                    <MenuItem fx:id="close" disable="true" mnemonicParsing="false" text="Close connection" onAction="#closeConnection" />
+                    <MenuItem fx:id="enter" disable="true" mnemonicParsing="false" text="Enter on server" onAction="#enterToServer"/>
                 </items>
             </Menu>
         </menus>
