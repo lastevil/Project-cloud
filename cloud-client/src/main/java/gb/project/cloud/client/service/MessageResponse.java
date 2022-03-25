@@ -9,15 +9,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MessageResponse {
-    private static Map<MessageType, ServiceMessage> responseMap = new HashMap<>();
-    private ClientController client;
-    private String host;
-    private int port;
+    private final static Map<MessageType, ServiceMessage> responseMap = new HashMap<>();
 
     public MessageResponse(ClientController client, String host, int port) {
-        this.host = host;
-        this.port = port;
-        this.client = client;
         //AUTH
         responseMap.put(MessageType.AUTH, (ctx, cm) -> {
             AuthMessage am = (AuthMessage) cm;

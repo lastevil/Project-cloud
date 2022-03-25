@@ -11,8 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MessageResponse {
-    private static Map<MessageType, ServiceMessage> responseMap = new HashMap<>();
-    private ServerHandler server;
+    private final static Map<MessageType, ServiceMessage> responseMap = new HashMap<>();
+    private final ServerHandler server;
 
     public MessageResponse(ServerHandler sh) {
         server=sh;
