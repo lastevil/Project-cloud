@@ -1,12 +1,10 @@
 package gb.project.cloud.objects;
 
-import lombok.Data;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-@Data
+
 public class FileMessage implements CloudMessage {
 
     private final byte[] bytes;
@@ -22,5 +20,17 @@ public class FileMessage implements CloudMessage {
     @Override
     public MessageType getMessageType() {
         return MessageType.FILE;
+    }
+
+    public long getSize() {
+        return size;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public byte[] getBytes() {
+        return bytes;
     }
 }

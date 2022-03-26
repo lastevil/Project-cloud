@@ -1,10 +1,7 @@
 package gb.project.cloud.server.auth;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.sql.*;
 
-@Slf4j
 public class DBConnect {
     private static Connection connection;
     private static Statement statement;
@@ -20,7 +17,6 @@ public class DBConnect {
                 connection.close();
             }
         } catch (SQLException e) {
-            log.error("SQL ERROR");
             e.printStackTrace();
         }
     }
@@ -44,7 +40,6 @@ public class DBConnect {
         return true;
         }
         catch (SQLException throwables) {
-            log.error("SQL ERROR");
             throwables.printStackTrace();
             return false;
         }

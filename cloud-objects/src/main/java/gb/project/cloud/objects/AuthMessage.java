@@ -1,8 +1,5 @@
 package gb.project.cloud.objects;
 
-import lombok.Data;
-
-@Data
 public class AuthMessage implements CloudMessage {
 
     private final int typeAuth;
@@ -18,5 +15,17 @@ public class AuthMessage implements CloudMessage {
     @Override
     public MessageType getMessageType() {
         return MessageType.AUTH;
+    }
+
+    public int getTypeAuth() {
+        return typeAuth;
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public String getPassword() {
+        return password;
     }
 }

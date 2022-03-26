@@ -9,7 +9,6 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.paint.Color;
-import lombok.Data;
 
 import java.io.IOException;
 import java.net.URL;
@@ -19,7 +18,6 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
-@Data
 public class ClientController implements Initializable {
     private Path clientDir;
     private Path clientDir2;

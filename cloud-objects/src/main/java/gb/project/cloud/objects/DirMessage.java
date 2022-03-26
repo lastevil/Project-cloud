@@ -1,8 +1,6 @@
 package gb.project.cloud.objects;
 
-import lombok.Data;
 
-@Data
 public class DirMessage implements CloudMessage {
     private final String file;
 
@@ -13,5 +11,9 @@ public class DirMessage implements CloudMessage {
     @Override
     public MessageType getMessageType() {
         return MessageType.DIRECTORY;
+    }
+
+    public String getFile() {
+        return file;
     }
 }

@@ -9,12 +9,10 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.serialization.*;
-import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.file.Path;
 
-@Slf4j
 
 public class NetClient {
 
@@ -51,7 +49,6 @@ public class NetClient {
                 e.printStackTrace();
             } finally {
                 workerGroup.shutdownGracefully();
-                log.error("Connection data error");
                 client.setDisconnect();
             }
         });
@@ -97,12 +94,10 @@ public class NetClient {
             extends SimpleChannelInboundHandler<CloudMessage> {
 
         public void channelActive(ChannelHandlerContext ctx) {
-            log.debug("Client connected to server");
         }
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, CloudMessage cm) throws Exception {
-            log.debug(cm.toString());
             MessageResponse mr = new MessageResponse(client, host, port);
             ServiceMessage sm = mr.getResponseMap().get(cm.getMessageType());
             sm.messageChecker(ctx, cm);
