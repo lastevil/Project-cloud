@@ -4,4 +4,5 @@ module cloud.server {
     requires io.netty.codec;
     requires org.slf4j;
     requires java.sql;
+    requires lombok;
 }

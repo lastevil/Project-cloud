@@ -9,11 +9,12 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.serialization.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.nio.file.Path;
 
-
+@Slf4j
 public class NetClient {
 
     private final ClientController client;
@@ -50,6 +51,7 @@ public class NetClient {
             } finally {
                 workerGroup.shutdownGracefully();
                 client.setDisconnect();
+                log.error("Connection lost");
             }
         });
         net.setDaemon(true);
@@ -94,6 +96,7 @@ public class NetClient {
             extends SimpleChannelInboundHandler<CloudMessage> {
 
         public void channelActive(ChannelHandlerContext ctx) {
+            log.debug("Client connected to server");
         }
 
         @Override

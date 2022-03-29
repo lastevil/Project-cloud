@@ -1,5 +1,8 @@
 package gb.project.cloud.objects;
 
+import lombok.Data;
+
+@Data
 public class MkdirMassage implements CloudMessage {
 
     private final String dir;
@@ -11,9 +14,5 @@ public class MkdirMassage implements CloudMessage {
     @Override
     public MessageType getMessageType() {
         return MessageType.MKDIR;
-    }
-
-    public String getDir() {
-        return dir;
     }
 }

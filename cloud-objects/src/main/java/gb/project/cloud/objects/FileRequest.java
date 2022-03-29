@@ -1,5 +1,8 @@
 package gb.project.cloud.objects;
 
+import lombok.Data;
+
+@Data
 public class FileRequest implements CloudMessage {
     private final String name;
 
@@ -12,7 +15,4 @@ public class FileRequest implements CloudMessage {
         return MessageType.FILE_REQUEST;
     }
 
-    public String getName() {
-        return name;
-    }
 }

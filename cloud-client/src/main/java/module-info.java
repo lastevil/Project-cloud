@@ -4,6 +4,8 @@ module gb.project.cloud.client.cloudclient {
     requires cloud.objects;
     requires io.netty.codec;
     requires io.netty.transport;
+    requires lombok;
+    requires org.slf4j;
 
     opens gb.project.cloud.client to javafx.fxml;
     exports gb.project.cloud.client;

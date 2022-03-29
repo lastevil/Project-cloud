@@ -1,6 +1,8 @@
 package gb.project.cloud.objects;
 
 
+import lombok.Data;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,6 +10,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Data
 public class ListMessage implements CloudMessage {
 
     private final List<String> files;
@@ -32,13 +35,5 @@ public class ListMessage implements CloudMessage {
     @Override
     public MessageType getMessageType() {
         return MessageType.LIST;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public List<String> getFiles() {
-        return files;
     }
 }
