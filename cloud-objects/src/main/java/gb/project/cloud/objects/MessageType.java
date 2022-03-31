@@ -6,5 +6,6 @@ public enum MessageType {
     FILE_REQUEST,
     DIRECTORY,
     AUTH,
-    MKDIR
+    MKDIR,
+    PATH_GET
 }

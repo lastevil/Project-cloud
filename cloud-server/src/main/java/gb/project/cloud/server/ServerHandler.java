@@ -20,7 +20,6 @@ public class ServerHandler extends SimpleChannelInboundHandler<CloudMessage> {
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, CloudMessage cloudMessage) throws Exception {
-        log.debug(cloudMessage.toString());
         MessageResponse mr = new MessageResponse(this);
         ServiceMessage sm = mr.getResponseMap().get(cloudMessage.getMessageType());
         sm.messageChecker(ctx, cloudMessage);

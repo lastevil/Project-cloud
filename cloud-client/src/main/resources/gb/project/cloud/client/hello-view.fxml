@@ -10,6 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ProgressBar?>
 <VBox HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="gb.project.cloud.client.ClientController">
@@ -23,8 +24,10 @@
             <Menu mnemonicParsing="false" text="Settings">
                 <items>
                     <MenuItem mnemonicParsing="false" text="Connect" onAction="#setConnection"/>
-                    <MenuItem fx:id="close" disable="true" mnemonicParsing="false" text="Close connection" onAction="#closeConnection" />
-                    <MenuItem fx:id="enter" disable="true" mnemonicParsing="false" text="Enter on server" onAction="#enterToServer"/>
+                    <MenuItem fx:id="close" disable="true" mnemonicParsing="false" text="Close connection"
+                              onAction="#closeConnection"/>
+                    <MenuItem fx:id="enter" disable="true" mnemonicParsing="false" text="Enter on server"
+                              onAction="#enterToServer"/>
                 </items>
             </Menu>
         </menus>
@@ -56,5 +59,13 @@
             <TextField fx:id="serverField" editable="false"/>
             <ListView fx:id="serverView" VBox.vgrow="ALWAYS"/>
         </VBox>
+
+    </HBox>
+    <HBox>
+        <padding>
+            <Insets bottom="5" left="5" right="5"/>
+        </padding>
+        <ProgressBar fx:id="progressBar" visible="true" progress="0" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"></ProgressBar>
+        <Label fx:id="progressLabel" visible="false"></Label>
     </HBox>
 </VBox>

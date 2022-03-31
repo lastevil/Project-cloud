@@ -12,6 +12,9 @@ import io.netty.handler.codec.serialization.*;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 
 @Slf4j
@@ -21,6 +24,7 @@ public class NetClient {
     private final String host;
     private final Integer port;
     private SocketChannel sChannel;
+    private boolean isGet;
 
     public NetClient(ClientController clientController, String host, Integer port) {
         client = clientController;
@@ -64,8 +68,37 @@ public class NetClient {
 
     public void upload(Path uploadedFile) {
         try {
-            sChannel.writeAndFlush(new FileMessage(uploadedFile));
+            log.debug("File transfer start");
+            long size = uploadedFile.toFile().length();
+            RandomAccessFile aFile = new RandomAccessFile(uploadedFile.toFile(), "r");
+            FileChannel inChannel = aFile.getChannel();
+            long appacity = size/2;
+            while (appacity >= 8 * 1000000) {
+                appacity /= 1024;
+                appacity++;
+            }
+            if (appacity == 0) {
+                appacity++;
+            }
+            while (size % appacity != 0){
+                appacity++;
+            }
+            ByteBuffer buf = ByteBuffer.allocate((int) appacity);
+            int bytesRead = inChannel.read(buf);
+            while (bytesRead != -1) {
+                buf.flip();
+                if (buf.hasRemaining() && buf.hasArray()) {
+                    ChannelFuture f =sChannel.writeAndFlush(new FileMessage(uploadedFile, buf.array(), size));
+                    f.sync();
+                }
+                buf.clear();
+                bytesRead = inChannel.read(buf);
+            }
+            log.debug("File transfer finish");
+            aFile.close();
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -90,6 +123,10 @@ public class NetClient {
 
     public void makeDir(String s) {
         sChannel.writeAndFlush(new MkdirMassage(s));
+    }
+
+    public void pathUpload() {
+        isGet=false;
     }
 
     private class ClientHandler

@@ -3,7 +3,6 @@ package gb.project.cloud.objects;
 import lombok.Data;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 @Data
@@ -13,9 +12,9 @@ public class FileMessage implements CloudMessage {
     private final long size;
     private final String name;
 
-public FileMessage(Path path) throws IOException {
-        bytes = Files.readAllBytes(path);
-        size = bytes.length;
+public FileMessage(Path path,byte[] bytes,long size) throws IOException {
+        this.bytes = bytes;
+        this.size=size;
         name = path.getFileName().toString();
     }
 

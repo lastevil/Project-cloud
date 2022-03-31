@@ -8,5 +8,5 @@ import java.sql.SQLException;
 
 @FunctionalInterface
 public interface ServiceMessage {
-    void messageChecker(ChannelHandlerContext ctx, CloudMessage msg) throws SQLException, IOException;
+    void messageChecker(ChannelHandlerContext ctx, CloudMessage msg) throws SQLException, IOException, InterruptedException;
 }
