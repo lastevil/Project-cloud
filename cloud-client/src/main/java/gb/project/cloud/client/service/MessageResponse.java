@@ -37,14 +37,12 @@ public class MessageResponse {
                         StandardOpenOption.APPEND
                 );
                 client.progressCopy(
-                        "get",
                         client.getClientDir().resolve(fm.getName()).toFile().length(),
                         fm.getSize()
                 );
             } else {
                 Files.write(client.getClientDir().resolve(fm.getName()), fm.getBytes());
                 client.progressCopy(
-                        "get",
                         client.getClientDir().resolve(fm.getName()).toFile().length(),
                         fm.getSize()
                 );
@@ -64,7 +62,7 @@ public class MessageResponse {
 
         responseMap.put(MessageType.PATH_GET, (ctx, cm) -> {
             PathFileGet gp = (PathFileGet) cm;
-            client.progressCopy(gp.getTypeMes(), gp.getGatedBytes(), gp.getSizeFile());
+            client.progressCopy(gp.getGatedBytes(), gp.getSizeFile());
         });
     }
 

@@ -2,7 +2,7 @@ package gb.project.cloud.client;
 
 import gb.project.cloud.client.dialog.*;
 import javafx.application.Platform;
-import javafx.concurrent.Task;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
@@ -37,21 +37,33 @@ public class ClientController implements Initializable {
     @FXML
     private MenuItem enter;
     @FXML
-    private ProgressBar progressBar;
-    @FXML
-    private Label progressLabel;
+    private ProgressIndicator progress;
+
 
     @FXML
     private void upload() {
+        progress.setProgress(0);
         String filename = clientView.getSelectionModel().getSelectedItem();
-        if (connect) {
-            if (clientDir.resolve(filename).toFile().isFile()) {
-                clientNet.upload(clientDir.resolve(filename));
-            } else {
-                messageDialog("Ошибка", "Выберете файл");
+        //проверка на файл
+        if (clientDir.resolve(filename).toFile().isFile()) {
+            ObservableList<String> filesList = serverView.getItems();
+            // Поиск файлов с одинаковым именем
+            if (filesList.contains(filename)) {
+                ChoseDialog diag = new ChoseDialog();
+                diag.DialogForm("Warn: File exist!", "Replace File?", "Replace", "Cancel");
+                Optional<String> s = diag.showAndWait();
+                if (s.isPresent()) {
+                    if (s.get().equals("1")) {
+                        clientNet.delete(filename);
+                    } else {
+                        return;
+                    }
+                }
             }
-        } else {
-            if (clientDir.resolve(filename).toFile().isFile()) {
+            //подключены к серверу
+            if (connect) {
+                clientNet.upload(clientDir.resolve(filename));
+            } else { // не подключены к серверу
                 Path selected = clientDir.resolve(filename);
                 Path destFile = Paths.get(clientDir2.normalize().toAbsolutePath().toString(),
                         selected.getFileName().toString());
@@ -62,14 +74,15 @@ public class ClientController implements Initializable {
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
-            } else {
-                messageDialog("Ошибка", "Выберете файл");
             }
+        } else {
+            messageDialog("Ошибка", "Выберете файл");
         }
     }
 
     @FXML
     public void download() {
+        progress.setProgress(0);
         String filename = serverView.getSelectionModel().getSelectedItem();
         if (connect) {
             clientNet.download(filename);
@@ -164,8 +177,8 @@ public class ClientController implements Initializable {
     }
 
     public void choseWindow() {
-        ChoseAuthDialog chseDiag = new ChoseAuthDialog();
-        chseDiag.DialogForm("");
+        ChoseDialog chseDiag = new ChoseDialog();
+        chseDiag.DialogForm("", "Chose Authentication type", "Authenticate", "Registration");
         Optional<String> s = chseDiag.showAndWait();
         if (s.isPresent()) {
             if (s.get().equals("1")) {
@@ -194,8 +207,8 @@ public class ClientController implements Initializable {
     }
 
     public void mkdir() throws IOException {
-        DirectoryNameDialog dialog = new DirectoryNameDialog();
-        dialog.DialogForm("Set name");
+        NameDialog dialog = new NameDialog();
+        dialog.DialogForm("Set name", "Please enter directory name", "Directory name");
         Optional<String> s = dialog.showAndWait();
         if (s.isPresent()) {
             if (connect) {
@@ -206,6 +219,44 @@ public class ClientController implements Initializable {
                 updateServerView("this computer",
                         List.of(Objects.requireNonNull(clientDir2.toFile().list())),
                         clientDir2.toString());
+                updateClientView();
+            }
+        }
+    }
+
+    public void delete() {
+        String filename = serverView.getSelectionModel().getSelectedItem();
+        ChoseDialog choseDialog = new ChoseDialog();
+        choseDialog.DialogForm("File will be delete", "You sure?", "Delete", "Cancel");
+        Optional<String> s = choseDialog.showAndWait();
+        if (s.isPresent() && "1".equals(s.get())) {
+            if (connect) {
+                clientNet.delete(filename);
+            } else {
+                Path p = Paths.get(clientDir2.normalize().toAbsolutePath().toString(), filename);
+                System.out.println(p.toFile().delete());
+                updateClientView();
+                updateServerView("this computer", List.of(Objects.requireNonNull(clientDir2.toFile().list())),
+                        clientDir2.toString());
+            }
+        }
+    }
+
+    public void rename() throws IOException {
+        String oldName = serverView.getSelectionModel().getSelectedItem();
+        System.out.println(" -> " + oldName);
+        NameDialog dialog = new NameDialog();
+        dialog.DialogForm("Set name", "Please enter directory name", "Directory name");
+        Optional<String> s = dialog.showAndWait();
+        if (s.isPresent()) {
+            if (connect) {
+                clientNet.rename(oldName, s.get());
+            } else {
+                Path fileToMovePath = Paths.get(clientDir2.normalize().toAbsolutePath().toString(), oldName);
+                Path targetPath = Paths.get(clientDir2.normalize().toAbsolutePath().toString(), s.get());
+                Files.move(fileToMovePath, targetPath);
+                updateServerView("This compute", List.of(Objects.requireNonNull(clientDir2.toFile().list())), clientDir2.toString());
+                updateClientView();
             }
         }
     }
@@ -236,15 +287,9 @@ public class ClientController implements Initializable {
         setDisconnect();
     }
 
-    public void progressCopy(String type, long current, long size) {
-        if ("upload".equals(type)) {
-            System.out.println("Msg: " + type + " get " + current + " size " + size);
-            progressBar.setProgress(current / size);
-            clientNet.pathUpload();
-        }
-        if ("get".equals(type)) {
-            progressBar.setProgress(current / size);
-        }
+    public void progressCopy(long current, long size) {
+        double res = (double) current / size;
+        progress.setProgress(res);
     }
 
     private void clientView2Click() {
@@ -314,5 +359,4 @@ public class ClientController implements Initializable {
             }
         }
     }
-
 }

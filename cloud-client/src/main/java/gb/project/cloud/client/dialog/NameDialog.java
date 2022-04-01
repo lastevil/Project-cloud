@@ -10,14 +10,14 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-public class DirectoryNameDialog extends Dialog<String> {
+public class NameDialog extends Dialog<String> {
     private TextField textField;
 
-    public void DialogForm(String title) {
+    public void DialogForm(String title, String header, String text) {
         setTitle(title);
-        setHeaderText("Please enter directory name");
+        setHeaderText(header);
         textField = new TextField();
-        textField.setPromptText("Directory name");
+        textField.setPromptText(text);
         ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelButton = new ButtonType("CANCEL", ButtonBar.ButtonData.CANCEL_CLOSE);
         getDialogPane().getButtonTypes().addAll(okButton, cancelButton);

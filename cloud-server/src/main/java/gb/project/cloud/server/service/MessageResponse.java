@@ -56,21 +56,17 @@ public class MessageResponse {
             if (server.getServerDir().resolve(fm.getName()).toFile().exists()) {
                 Files.write(server.getServerDir().resolve(fm.getName()), fm.getBytes(),
                         StandardOpenOption.APPEND);
-                ctx.writeAndFlush(new PathFileGet("upload",
+                ctx.writeAndFlush(new PathFileGet(
                         server.getServerDir().resolve(fm.getName()).toFile().length(),
                         fm.getSize())
                 );
             } else {
                 Files.write(server.getServerDir().resolve(fm.getName()), fm.getBytes());
-                ctx.writeAndFlush(new PathFileGet("upload",
+                ctx.writeAndFlush(new PathFileGet(
                         server.getServerDir().resolve(fm.getName()).toFile().length(),
                         fm.getSize())
                 );
             }
-            log.debug("get: " +
-                    server.getServerDir().resolve(fm.getName()).toFile().length() +
-                    " size: " +
-                    fm.getSize());
             if (fm.getSize() == server.getServerDir().resolve(fm.getName()).toFile().length()) {
                 ctx.writeAndFlush(new ListMessage(server.getServerDir()));
             }
@@ -82,7 +78,7 @@ public class MessageResponse {
             FileRequest fr = (FileRequest) cm;
             Path uploadFile = server.getServerDir().resolve(fr.getName());
             long size = uploadFile.toFile().length();
-            long appacity = size/2;
+            long appacity = size / 2;
             while (appacity >= 8 * 1000000) {
                 appacity /= 1024;
                 appacity++;
@@ -90,7 +86,7 @@ public class MessageResponse {
             if (appacity == 0) {
                 appacity++;
             }
-            while (size % appacity != 0){
+            while (size % appacity != 0) {
                 appacity++;
             }
             ByteBuffer buf = ByteBuffer.allocate((int) appacity);
@@ -126,6 +122,29 @@ public class MessageResponse {
             MkdirMassage mkdir = (MkdirMassage) cm;
             Path dir = Paths.get(server.getServerDir().toString(), mkdir.getDir());
             Files.createDirectories(dir);
+            ctx.writeAndFlush(new ListMessage(server.getServerDir()));
+        });
+
+        //DELETE
+
+        responseMap.put(MessageType.DELETE, (ctx, cm) -> {
+            DeleteMessage dm = (DeleteMessage) cm;
+            Path f = Paths.get(server.getServerDir().toString(), dm.getFileName());
+            if (f.toFile().exists()) {
+                f.toFile().delete();
+                ctx.writeAndFlush(new ListMessage(server.getServerDir()));
+            }
+        });
+
+        //RENAME
+
+        responseMap.put(MessageType.RENAME, (ctx, cm) -> {
+            RenameMessage rm = (RenameMessage) cm;
+            Path fileToMovePath = Paths.get(server.getServerDir().toString(), rm.getOldName());
+            Path targetPath = Paths.get(server.getServerDir().toString(), rm.getNewName());
+            if (fileToMovePath.toFile().exists()) {
+                Files.move(fileToMovePath, targetPath);
+            }
             ctx.writeAndFlush(new ListMessage(server.getServerDir()));
         });
     }

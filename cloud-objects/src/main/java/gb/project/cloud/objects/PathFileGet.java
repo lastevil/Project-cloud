@@ -6,10 +6,8 @@ import lombok.Data;
 public class PathFileGet implements CloudMessage {
     private long gatedBytes;
     private long sizeFile;
-    private String typeMes;
 
-    public PathFileGet(String type, long currentSize, long fileSize){
-        typeMes=type;
+    public PathFileGet(long currentSize, long fileSize){
         gatedBytes = currentSize;
         sizeFile = fileSize;
     }

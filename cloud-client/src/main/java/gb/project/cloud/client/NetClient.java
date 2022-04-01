@@ -41,7 +41,7 @@ public class NetClient {
                             public void initChannel(SocketChannel ch) {
                                 sChannel = ch;
                                 ch.pipeline().addLast(
-                                        new ObjectDecoder(1487500 * 100, ClassResolvers.cacheDisabled(null)),
+                                        new ObjectDecoder(1400000 * 100, ClassResolvers.cacheDisabled(null)),
                                         new ObjectEncoder(),
                                         new ClientHandler()
                                 );
@@ -125,8 +125,12 @@ public class NetClient {
         sChannel.writeAndFlush(new MkdirMassage(s));
     }
 
-    public void pathUpload() {
-        isGet=false;
+    public void delete(String filename) {
+        sChannel.writeAndFlush(new DeleteMessage(filename));
+    }
+
+    public void rename(String oldName, String newName) {
+        sChannel.writeAndFlush(new RenameMessage(oldName,newName));
     }
 
     private class ClientHandler

@@ -10,62 +10,66 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ProgressIndicator?>
 <VBox HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="gb.project.cloud.client.ClientController">
     <MenuBar>
-        <menus>
             <Menu mnemonicParsing="false" text="File">
-                <items>
                     <MenuItem mnemonicParsing="false" text="Quit" onAction="#exit"/>
-                </items>
             </Menu>
             <Menu mnemonicParsing="false" text="Settings">
-                <items>
                     <MenuItem mnemonicParsing="false" text="Connect" onAction="#setConnection"/>
                     <MenuItem fx:id="close" disable="true" mnemonicParsing="false" text="Close connection"
                               onAction="#closeConnection"/>
                     <MenuItem fx:id="enter" disable="true" mnemonicParsing="false" text="Enter on server"
                               onAction="#enterToServer"/>
-                </items>
             </Menu>
-        </menus>
     </MenuBar>
     <HBox HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
         <padding>
             <Insets bottom="5" left="5" right="5" top="5"/>
         </padding>
         <VBox HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
-            <Label fx:id="leftLabel" text="This computer"/>
+            <Label text="This computer"/>
             <TextField fx:id="clientField" editable="false"/>
             <ListView fx:id="clientView" VBox.vgrow="ALWAYS"/>
         </VBox>
-        <VBox alignment="CENTER">
-            <padding>
-                <Insets bottom="5" left="5" right="5" top="5"/>
-            </padding>
-            <Button fx:id="bSend" mnemonicParsing="false" minHeight="26.0" minWidth="43.0" text="Send"
-                    onAction="#upload"/>
-            <Label></Label>
-            <Button fx:id="bGet" mnemonicParsing="false" minHeight="26.0" minWidth="43.0" text="Get"
-                    onAction="#download"/>
-            <Label></Label>
-            <Button fx:id="bDir" mnemonicParsing="false" minHeight="26.0" minWidth="43.0" text="New Dir"
-                    onAction="#mkdir"/>
+        <VBox>
+            <VBox alignment="CENTER" VBox.vgrow="ALWAYS">
+                <padding>
+                    <Insets bottom="5" left="5" right="5" top="5"/>
+                </padding>
+                <Label text=" from: "/>
+                <Button mnemonicParsing="false" minHeight="26.0" minWidth="43.0" text="Download"
+                        onAction="#download"/>
+                <Label text=" to: "/>
+                <Button mnemonicParsing="false" minHeight="26.0" minWidth="43.0" text="Upload"
+                        onAction="#upload"/>
+                <Label/>
+                <Button mnemonicParsing="false" minHeight="26.0" minWidth="43.0" text="New Dir"
+                        onAction="#mkdir"/>
+                <Label/>
+                <Button mnemonicParsing="false" minHeight="26.0" minWidth="43.0" text="Rename"
+                        onAction="#rename"/>
+                <Label/>
+                <Button mnemonicParsing="false" minHeight="26.0" minWidth="43.0" text="Delete"
+                        onAction="#delete"/>
+            </VBox>
+            <VBox alignment="BOTTOM_CENTER">
+                <ProgressIndicator fx:id="progress" progress="Infinity" visible="true"></ProgressIndicator>
+            </VBox>
         </VBox>
         <VBox HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
             <Label fx:id="serverLabel" text=""/>
             <TextField fx:id="serverField" editable="false"/>
             <ListView fx:id="serverView" VBox.vgrow="ALWAYS"/>
         </VBox>
-
     </HBox>
-    <HBox>
+    <VBox>
         <padding>
-            <Insets bottom="5" left="5" right="5"/>
+            <Insets bottom="5" left="5" right="5" top="5"/>
         </padding>
-        <ProgressBar fx:id="progressBar" visible="true" progress="0" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS"></ProgressBar>
-        <Label fx:id="progressLabel" visible="false"></Label>
-    </HBox>
+
+    </VBox>
 </VBox>

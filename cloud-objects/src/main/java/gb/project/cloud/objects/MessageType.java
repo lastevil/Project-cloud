@@ -7,5 +7,7 @@ public enum MessageType {
     DIRECTORY,
     AUTH,
     MKDIR,
-    PATH_GET
+    PATH_GET,
+    DELETE,
+    RENAME
 }
