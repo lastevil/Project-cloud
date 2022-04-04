@@ -123,8 +123,15 @@ public class ClientController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        clientDir = Paths.get("\\");
-        clientDir2 = Paths.get("\\");
+        clientDir = Paths.get("client");
+        if (!clientDir.toFile().exists()){
+            try {
+                Files.createDirectory(clientDir);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        clientDir2 = clientDir;
         updateClientView();
         List<String> names = List.of(Objects.requireNonNull(clientDir.toFile().list()));
         updateServerView("this computer",

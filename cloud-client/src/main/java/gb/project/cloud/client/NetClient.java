@@ -24,7 +24,9 @@ public class NetClient {
     private final String host;
     private final Integer port;
     private SocketChannel sChannel;
-    private boolean isGet;
+    private MessageResponse mr;
+    private final int SIZE_MB_8 = 8000000;
+
 
     public NetClient(ClientController clientController, String host, Integer port) {
         client = clientController;
@@ -60,6 +62,7 @@ public class NetClient {
         });
         net.setDaemon(true);
         net.start();
+         mr = new MessageResponse(client, host, port);
     }
 
     public void download(String downloadedFile) {
@@ -72,25 +75,15 @@ public class NetClient {
             long size = uploadedFile.toFile().length();
             RandomAccessFile aFile = new RandomAccessFile(uploadedFile.toFile(), "r");
             FileChannel inChannel = aFile.getChannel();
-            long appacity = size/2;
-            while (appacity >= 8 * 1000000) {
-                appacity /= 1024;
-                appacity++;
-            }
-            if (appacity == 0) {
-                appacity++;
-            }
-            while (size % appacity != 0){
-                appacity++;
-            }
-            ByteBuffer buf = ByteBuffer.allocate((int) appacity);
+            ByteBuffer buf = ByteBuffer.allocate(SIZE_MB_8);
             int bytesRead = inChannel.read(buf);
             while (bytesRead != -1) {
                 buf.flip();
-                if (buf.hasRemaining() && buf.hasArray()) {
-                    ChannelFuture f =sChannel.writeAndFlush(new FileMessage(uploadedFile, buf.array(), size));
-                    f.sync();
+                if(buf.position()>0 && buf.hasRemaining()) {
+                    buf = buf.slice(0,buf.position());
                 }
+                ChannelFuture f =sChannel.writeAndFlush(new FileMessage(uploadedFile, buf.array(), size));
+                f.sync();
                 buf.clear();
                 bytesRead = inChannel.read(buf);
             }
@@ -142,7 +135,7 @@ public class NetClient {
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, CloudMessage cm) throws Exception {
-            MessageResponse mr = new MessageResponse(client, host, port);
+
             ServiceMessage sm = mr.getResponseMap().get(cm.getMessageType());
             sm.messageChecker(ctx, cm);
         }

@@ -19,6 +19,7 @@ import java.util.Map;
 @Slf4j
 public class MessageResponse {
     private final static Map<MessageType, ServiceMessage> responseMap = new HashMap<>();
+    private final int SIZE_MB_8 = 8_000_000;
     private final ServerHandler server;
 
     public MessageResponse(ServerHandler sh) {
@@ -78,29 +79,22 @@ public class MessageResponse {
             FileRequest fr = (FileRequest) cm;
             Path uploadFile = server.getServerDir().resolve(fr.getName());
             long size = uploadFile.toFile().length();
-            long appacity = size / 2;
-            while (appacity >= 8 * 1000000) {
-                appacity /= 1024;
-                appacity++;
-            }
-            if (appacity == 0) {
-                appacity++;
-            }
-            while (size % appacity != 0) {
-                appacity++;
-            }
-            ByteBuffer buf = ByteBuffer.allocate((int) appacity);
+            ByteBuffer buf = ByteBuffer.allocate(SIZE_MB_8);
             RandomAccessFile aFile = new RandomAccessFile(uploadFile.toFile(), "rw");
             FileChannel inChannel = aFile.getChannel();
             int bytesRead = inChannel.read(buf);
             while (bytesRead != -1) {
                 buf.flip();
-                ChannelFuture f = ctx.writeAndFlush(new FileMessage(uploadFile, buf.array(), size));
+                if(buf.position()>0 && buf.hasRemaining()) {
+                    buf = buf.slice(0,buf.position());
+                }
+                ChannelFuture f =ctx.writeAndFlush(new FileMessage(uploadFile, buf.array(), size));
                 f.sync();
                 buf.clear();
                 bytesRead = inChannel.read(buf);
             }
             aFile.close();
+            ctx.writeAndFlush(new ListMessage(server.getServerDir()));
         });
 
         //DIRECTORY
