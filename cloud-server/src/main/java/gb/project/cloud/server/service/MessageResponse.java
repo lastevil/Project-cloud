@@ -2,148 +2,34 @@ package gb.project.cloud.server.service;
 
 import gb.project.cloud.objects.*;
 import gb.project.cloud.server.ServerHandler;
-import gb.project.cloud.server.auth.AuthService;
-import io.netty.channel.ChannelFuture;
+import gb.project.cloud.server.service.messages.*;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.RandomAccessFile;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 public class MessageResponse {
-    private final static Map<MessageType, ServiceMessage> responseMap = new HashMap<>();
-    private final int SIZE_MB_8 = 8_000_000;
-    private final ServerHandler server;
+    private final static Map<MessageType, ServiceMessage> RESPONSE_MAP = new HashMap<>();
 
     public MessageResponse(ServerHandler sh) {
-        server = sh;
 
-        //AUTH
+        RESPONSE_MAP.put(MessageType.AUTH, new AuthMes(sh));
 
-        responseMap.put(MessageType.AUTH, (ctx, cm) -> {
-            AuthMessage am = (AuthMessage) cm;
-            AuthService db = new AuthService();
-            db.open();
-            if (am.getTypeAuth() == 1) {
-                if (db.existUserByLoginPass(am.getLogin(), am.getPassword())) {
-                    server.setServerDir(Paths.get(server.getServerDir().toString(), am.getLogin()));
-                    ctx.writeAndFlush(new ListMessage(server.getServerDir()));
-                } else {
-                    ctx.writeAndFlush(new AuthMessage(1, "error", "wrong user data"));
-                }
-            } else {
-                if (db.registration(am.getLogin(), am.getPassword())) {
-                    server.setServerDir(Paths.get(server.getServerDir().toString(), am.getLogin()));
-                    Files.createDirectories(server.getServerDir());
-                    ctx.writeAndFlush(new ListMessage(server.getServerDir()));
-                } else {
-                    ctx.writeAndFlush(new AuthMessage(1, "error", "user exist!"));
-                }
-            }
-            db.close();
-        });
+        RESPONSE_MAP.put(MessageType.FILE, new FileMes(sh));
 
-        //FILE
+        RESPONSE_MAP.put(MessageType.FILE_REQUEST, new FileReqMes(sh));
 
-        responseMap.put(MessageType.FILE, (ctx, cm) -> {
-            FileMessage fm = (FileMessage) cm;
-            if (server.getServerDir().resolve(fm.getName()).toFile().exists()) {
-                Files.write(server.getServerDir().resolve(fm.getName()), fm.getBytes(),
-                        StandardOpenOption.APPEND);
-                ctx.writeAndFlush(new PathFileGet(
-                        server.getServerDir().resolve(fm.getName()).toFile().length(),
-                        fm.getSize())
-                );
-            } else {
-                Files.write(server.getServerDir().resolve(fm.getName()), fm.getBytes());
-                ctx.writeAndFlush(new PathFileGet(
-                        server.getServerDir().resolve(fm.getName()).toFile().length(),
-                        fm.getSize())
-                );
-            }
-            if (fm.getSize() == server.getServerDir().resolve(fm.getName()).toFile().length()) {
-                ctx.writeAndFlush(new ListMessage(server.getServerDir()));
-            }
-        });
+        RESPONSE_MAP.put(MessageType.DIRECTORY, new DirMes(sh));
 
-        //FILE_REQUEST
+        RESPONSE_MAP.put(MessageType.MKDIR, new MkdirMes(sh));
 
-        responseMap.put(MessageType.FILE_REQUEST, (ctx, cm) -> {
-            FileRequest fr = (FileRequest) cm;
-            Path uploadFile = server.getServerDir().resolve(fr.getName());
-            long size = uploadFile.toFile().length();
-            ByteBuffer buf = ByteBuffer.allocate(SIZE_MB_8);
-            RandomAccessFile aFile = new RandomAccessFile(uploadFile.toFile(), "rw");
-            FileChannel inChannel = aFile.getChannel();
-            int bytesRead = inChannel.read(buf);
-            while (bytesRead != -1) {
-                buf.flip();
-                if(buf.position()>0 && buf.hasRemaining()) {
-                    buf = buf.slice(0,buf.position());
-                }
-                ChannelFuture f =ctx.writeAndFlush(new FileMessage(uploadFile, buf.array(), size));
-                f.sync();
-                buf.clear();
-                bytesRead = inChannel.read(buf);
-            }
-            aFile.close();
-            ctx.writeAndFlush(new ListMessage(server.getServerDir()));
-        });
+        RESPONSE_MAP.put(MessageType.DELETE, new DelMes(sh));
 
-        //DIRECTORY
-
-        responseMap.put(MessageType.DIRECTORY, (ctx, cm) -> {
-            DirMessage dm = (DirMessage) cm;
-            Path drm = Paths.get(server.getServerDir().toString(), dm.getFile());
-            if (dm.getFile().equals("...")) {
-                server.setServerDir(server.getServerDir().getParent());
-            } else if (drm.toFile().isDirectory()) {
-                server.setServerDir(drm);
-            }
-            ctx.writeAndFlush(new ListMessage(server.getServerDir()));
-        });
-
-        //MKDIR
-
-        responseMap.put(MessageType.MKDIR, (ctx, cm) -> {
-            MkdirMassage mkdir = (MkdirMassage) cm;
-            Path dir = Paths.get(server.getServerDir().toString(), mkdir.getDir());
-            Files.createDirectories(dir);
-            ctx.writeAndFlush(new ListMessage(server.getServerDir()));
-        });
-
-        //DELETE
-
-        responseMap.put(MessageType.DELETE, (ctx, cm) -> {
-            DeleteMessage dm = (DeleteMessage) cm;
-            Path f = Paths.get(server.getServerDir().toString(), dm.getFileName());
-            if (f.toFile().exists()) {
-                f.toFile().delete();
-                ctx.writeAndFlush(new ListMessage(server.getServerDir()));
-            }
-        });
-
-        //RENAME
-
-        responseMap.put(MessageType.RENAME, (ctx, cm) -> {
-            RenameMessage rm = (RenameMessage) cm;
-            Path fileToMovePath = Paths.get(server.getServerDir().toString(), rm.getOldName());
-            Path targetPath = Paths.get(server.getServerDir().toString(), rm.getNewName());
-            if (fileToMovePath.toFile().exists()) {
-                Files.move(fileToMovePath, targetPath);
-            }
-            ctx.writeAndFlush(new ListMessage(server.getServerDir()));
-        });
+        RESPONSE_MAP.put(MessageType.RENAME, new RenameMes(sh));
     }
 
     public static Map<MessageType, ServiceMessage> getResponseMap() {
-        return responseMap;
+        return RESPONSE_MAP;
     }
 }

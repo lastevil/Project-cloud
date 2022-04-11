@@ -1,7 +1,7 @@
 package gb.project.cloud.client;
 
 import gb.project.cloud.client.service.MessageResponse;
-import gb.project.cloud.client.service.ServiceMessage;
+import gb.project.cloud.client.service.messages.ServiceMessage;
 import gb.project.cloud.objects.*;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -23,8 +23,8 @@ public class NetClient {
     private final ClientController client;
     private final String host;
     private final Integer port;
-    private SocketChannel sChannel;
-    private MessageResponse mr;
+    private Channel sChannel;
+    private final MessageResponse mr;
     private final int SIZE_MB_8 = 8000000;
 
 
@@ -41,7 +41,6 @@ public class NetClient {
                         .handler(new ChannelInitializer<SocketChannel>() {
                             @Override
                             public void initChannel(SocketChannel ch) {
-                                sChannel = ch;
                                 ch.pipeline().addLast(
                                         new ObjectDecoder(1400000 * 100, ClassResolvers.cacheDisabled(null)),
                                         new ObjectEncoder(),
@@ -51,6 +50,7 @@ public class NetClient {
 
                         });
                 ChannelFuture f = b.connect(host, port).sync();
+                sChannel = f.channel();
                 f.channel().closeFuture().sync();
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -62,7 +62,7 @@ public class NetClient {
         });
         net.setDaemon(true);
         net.start();
-         mr = new MessageResponse(client, host, port);
+        mr = new MessageResponse(client, host, port);
     }
 
     public void download(String downloadedFile) {
@@ -79,19 +79,17 @@ public class NetClient {
             int bytesRead = inChannel.read(buf);
             while (bytesRead != -1) {
                 buf.flip();
-                if(buf.position()>0 && buf.hasRemaining()) {
-                    buf = buf.slice(0,buf.position());
+                if (buf.position() > 0 && buf.hasRemaining()) {
+                    buf = buf.slice(0, buf.position());
                 }
-                ChannelFuture f =sChannel.writeAndFlush(new FileMessage(uploadedFile, buf.array(), size));
+                ChannelFuture f = sChannel.writeAndFlush(new FileMessage(uploadedFile, buf.array(), size));
                 f.sync();
                 buf.clear();
                 bytesRead = inChannel.read(buf);
             }
             log.debug("File transfer finish");
             aFile.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
     }
@@ -123,7 +121,7 @@ public class NetClient {
     }
 
     public void rename(String oldName, String newName) {
-        sChannel.writeAndFlush(new RenameMessage(oldName,newName));
+        sChannel.writeAndFlush(new RenameMessage(oldName, newName));
     }
 
     private class ClientHandler
@@ -135,9 +133,7 @@ public class NetClient {
 
         @Override
         protected void channelRead0(ChannelHandlerContext ctx, CloudMessage cm) throws Exception {
-
-            ServiceMessage sm = mr.getResponseMap().get(cm.getMessageType());
-            sm.messageChecker(ctx, cm);
+            mr.getResponseMap().get(cm.getMessageType()).messageChecker(ctx, cm);
         }
     }
 }

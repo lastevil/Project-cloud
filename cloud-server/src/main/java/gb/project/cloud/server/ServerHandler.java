@@ -3,7 +3,7 @@ package gb.project.cloud.server;
 
 import gb.project.cloud.server.auth.AuthService;
 import gb.project.cloud.server.service.MessageResponse;
-import gb.project.cloud.server.service.ServiceMessage;
+import gb.project.cloud.server.service.messages.ServiceMessage;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,9 +22,8 @@ public class ServerHandler extends SimpleChannelInboundHandler<CloudMessage> {
     private MessageResponse mr;
 
     @Override
-    protected void channelRead0(ChannelHandlerContext ctx, CloudMessage cloudMessage) throws Exception {
-        ServiceMessage sm = mr.getResponseMap().get(cloudMessage.getMessageType());
-        sm.messageChecker(ctx, cloudMessage);
+    protected void channelRead0(ChannelHandlerContext ctx, CloudMessage cm) throws Exception {
+        mr.getResponseMap().get(cm.getMessageType()).messageChecker(ctx, cm);
     }
 
     @Override
@@ -32,7 +31,7 @@ public class ServerHandler extends SimpleChannelInboundHandler<CloudMessage> {
         log.debug("Client connected");
         mr = new MessageResponse(this);
         serverDir = Paths.get("server");
-        if (!serverDir.toFile().exists()){
+        if (!serverDir.toFile().exists()) {
             Files.createDirectory(serverDir);
         }
         new AuthService();

@@ -1,4 +1,4 @@
-package gb.project.cloud.client.service;
+package gb.project.cloud.client.service.messages;
 
 import gb.project.cloud.objects.CloudMessage;
 import io.netty.channel.ChannelHandlerContext;

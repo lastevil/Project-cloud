@@ -27,7 +27,7 @@ public class ServerApp {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) {
                             socketChannel.pipeline().addLast(
-                                    new ObjectDecoder(1400000 * 100,ClassResolvers.cacheDisabled(null)),
+                                    new ObjectDecoder(1400000 * 100, ClassResolvers.cacheDisabled(null)),
                                     new ObjectEncoder(),
                                     new ServerHandler()
                             );
