@@ -33,11 +33,10 @@ public class FileReqMes implements ServiceMessage {
         int bytesRead = inChannel.read(buf);
         while (bytesRead != -1) {
             buf.flip();
-            if (buf.position() > 0 && buf.hasRemaining()) {
-                buf = buf.slice(0, buf.position());
+            if (buf.hasRemaining()) {
+                byte[] bytes = new byte[buf.limit()];
+                ctx.writeAndFlush(new FileMessage(uploadFile, bytes, size)).sync();
             }
-            ChannelFuture f = ctx.writeAndFlush(new FileMessage(uploadFile, buf.array(), size));
-            f.sync();
             buf.clear();
             bytesRead = inChannel.read(buf);
         }

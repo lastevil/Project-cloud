@@ -6,9 +6,10 @@ import gb.project.cloud.objects.ListMessage;
 import gb.project.cloud.server.ServerHandler;
 import io.netty.channel.ChannelHandlerContext;
 
+import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
+import java.util.Comparator;
 
 public class DelMes implements ServiceMessage {
     private final ServerHandler server;
@@ -22,8 +23,17 @@ public class DelMes implements ServiceMessage {
         DeleteMessage dm = (DeleteMessage) cm;
         Path f = Paths.get(server.getServerDir().toString(), dm.getFileName());
         if (f.toFile().exists()) {
-            f.toFile().delete();
-            ctx.writeAndFlush(new ListMessage(server.getServerDir()));
+            if (f.toFile().isFile()){
+                f.toFile().delete();
+                ctx.writeAndFlush(new ListMessage(server.getServerDir()));
+            }
+            else {
+                Files.walk(Path.of(f.toString()))
+                        .sorted(Comparator.reverseOrder())
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+                ctx.writeAndFlush(new ListMessage(server.getServerDir()));
+            }
         }
     }
 }

@@ -1,7 +1,6 @@
 package gb.project.cloud.client;
 
 import gb.project.cloud.client.service.MessageResponse;
-import gb.project.cloud.client.service.messages.ServiceMessage;
 import gb.project.cloud.objects.*;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
@@ -16,6 +15,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Path;
+import java.util.Set;
 
 @Slf4j
 public class NetClient {
@@ -73,17 +73,16 @@ public class NetClient {
         try {
             log.debug("File transfer start");
             long size = uploadedFile.toFile().length();
-            RandomAccessFile aFile = new RandomAccessFile(uploadedFile.toFile(), "r");
+            RandomAccessFile aFile = new RandomAccessFile(uploadedFile.toFile(), "rw");
             FileChannel inChannel = aFile.getChannel();
             ByteBuffer buf = ByteBuffer.allocate(SIZE_MB_8);
             int bytesRead = inChannel.read(buf);
             while (bytesRead != -1) {
                 buf.flip();
-                if (buf.position() > 0 && buf.hasRemaining()) {
-                    buf = buf.slice(0, buf.position());
+                if (buf.hasRemaining()) {
+                    byte[] bytes = new byte[buf.limit()];
+                    sChannel.writeAndFlush(new FileMessage(uploadedFile, bytes, size)).sync();
                 }
-                ChannelFuture f = sChannel.writeAndFlush(new FileMessage(uploadedFile, buf.array(), size));
-                f.sync();
                 buf.clear();
                 bytesRead = inChannel.read(buf);
             }
