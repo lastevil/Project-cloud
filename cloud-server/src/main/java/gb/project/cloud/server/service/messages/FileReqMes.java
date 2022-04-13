@@ -5,7 +5,6 @@ import gb.project.cloud.objects.FileMessage;
 import gb.project.cloud.objects.FileRequest;
 import gb.project.cloud.objects.ListMessage;
 import gb.project.cloud.server.ServerHandler;
-import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 
 import java.io.IOException;

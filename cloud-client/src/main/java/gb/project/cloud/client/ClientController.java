@@ -8,6 +8,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.paint.Color;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -65,12 +66,15 @@ public class ClientController implements Initializable {
                 clientNet.upload(clientDir.resolve(filename));
             } else { // не подключены к серверу
                 Path selected = clientDir.resolve(filename);
-                Path destFile = Paths.get(clientDir2.normalize().toAbsolutePath().toString(),
+                Path destFile = Paths.get(clientDir2.normalize().toString(),
                         selected.getFileName().toString());
                 try {
                     Files.copy(selected, destFile,
                             StandardCopyOption.REPLACE_EXISTING);
                     updateClientView();
+                    updateServerView("this computer",
+                            List.of(Objects.requireNonNull(clientDir2.toFile().list())),
+                            clientDir2.toString());
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -88,7 +92,7 @@ public class ClientController implements Initializable {
             clientNet.download(filename);
         } else {
             Path selected = clientDir2.resolve(filename);
-            Path destFile = Paths.get(clientDir.normalize().toAbsolutePath().toString(),
+            Path destFile = Paths.get(clientDir.normalize().toString(),
                     selected.getFileName().toString());
             try {
                 Files.copy(selected, destFile,
@@ -102,7 +106,7 @@ public class ClientController implements Initializable {
 
     public void updateClientView() {
         Platform.runLater(() -> {
-            clientField.setText(clientDir.toAbsolutePath().normalize().toString());
+            clientField.setText(clientDir.normalize().toString());
             clientView.getItems().clear();
             if (clientDir.getParent() != null) {
                 clientView.getItems().add("...");
@@ -114,9 +118,12 @@ public class ClientController implements Initializable {
 
     public void updateServerView(String label, List<String> names, String path) {
         Platform.runLater(() -> {
+            serverView.getItems().clear();
+            if (!connect && clientDir2.getParent()!=null){
+                serverView.getItems().add("...");
+            }
             serverLabel.setText(label);
             serverField.setText(path);
-            serverView.getItems().clear();
             serverView.getItems().addAll(names);
         });
     }
@@ -124,7 +131,7 @@ public class ClientController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         clientDir = Paths.get("client");
-        if (!clientDir.toFile().exists()){
+        if (!clientDir.toFile().exists()) {
             try {
                 Files.createDirectory(clientDir);
             } catch (IOException e) {
@@ -136,7 +143,7 @@ public class ClientController implements Initializable {
         List<String> names = List.of(Objects.requireNonNull(clientDir.toFile().list()));
         updateServerView("this computer",
                 names,
-                clientDir2.toAbsolutePath().normalize().toString());
+                clientDir2.normalize().toString());
         //обработчик окна файлов компьютера
         clientView.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
@@ -231,7 +238,7 @@ public class ClientController implements Initializable {
         }
     }
 
-    public void delete() {
+    public void delete() throws IOException {
         String filename = serverView.getSelectionModel().getSelectedItem();
         ChoseDialog choseDialog = new ChoseDialog();
         choseDialog.DialogForm("File will be delete", "You sure?", "Delete", "Cancel");
@@ -240,10 +247,20 @@ public class ClientController implements Initializable {
             if (connect) {
                 clientNet.delete(filename);
             } else {
-                Path p = Paths.get(clientDir2.normalize().toAbsolutePath().toString(), filename);
-                System.out.println(p.toFile().delete());
+                Path p = Paths.get(clientDir2.normalize().toString(), filename);
+                if (p.toFile().exists()) {
+                    if (p.toFile().isFile()) {
+                        p.toFile().delete();
+                    } else {
+                        Files.walk(Path.of(p.toString()))
+                                .sorted(Comparator.reverseOrder())
+                                .map(Path::toFile)
+                                .forEach(File::delete);
+                    }
+                }
                 updateClientView();
-                updateServerView("this computer", List.of(Objects.requireNonNull(clientDir2.toFile().list())),
+                updateServerView("this computer",
+                        List.of(Objects.requireNonNull(clientDir2.toFile().list())),
                         clientDir2.toString());
             }
         }
@@ -259,10 +276,12 @@ public class ClientController implements Initializable {
             if (connect) {
                 clientNet.rename(oldName, s.get());
             } else {
-                Path fileToMovePath = Paths.get(clientDir2.normalize().toAbsolutePath().toString(), oldName);
-                Path targetPath = Paths.get(clientDir2.normalize().toAbsolutePath().toString(), s.get());
+                Path fileToMovePath = Paths.get(clientDir2.normalize().toString(), oldName);
+                Path targetPath = Paths.get(clientDir2.normalize().toString(), s.get());
                 Files.move(fileToMovePath, targetPath);
-                updateServerView("This compute", List.of(Objects.requireNonNull(clientDir2.toFile().list())), clientDir2.toString());
+                updateServerView("This compute",
+                        List.of(Objects.requireNonNull(clientDir2.toFile().list())),
+                        clientDir2.toString());
                 updateClientView();
             }
         }
@@ -274,7 +293,7 @@ public class ClientController implements Initializable {
         Platform.runLater(() -> messageDialog("Warring", "Server disconnected"));
         updateServerView("this computer",
                 List.of(Objects.requireNonNull(clientDir2.toFile().list())),
-                clientDir2.toAbsolutePath().toString());
+                clientDir2.normalize().toString());
         close.setDisable(true);
         enter.setDisable(true);
     }
@@ -327,15 +346,9 @@ public class ClientController implements Initializable {
             //если не подключен к серверу
             if (!connect) {
                 clientDir2 = clientDir2.getParent();
-                List<String> names2;
-                if (clientDir2.getParent() != null) {
-                    names2 = new LinkedList<>();
-                    names2.add("...");
-                    names2.addAll(List.of(Objects.requireNonNull(clientDir2.toFile().list())));
-                } else {
-                    names2 = List.of(Objects.requireNonNull(clientDir2.toFile().list()));
-                }
-                updateServerView("this computer", names2, clientDir2.toAbsolutePath().normalize().toString());
+                updateServerView("this computer",
+                        List.of(Objects.requireNonNull(clientDir2.toFile().list())),
+                        clientDir2.normalize().toString());
             }
             //при подключенном
             else {
@@ -347,17 +360,9 @@ public class ClientController implements Initializable {
                 Path selected = clientDir2.resolve(item);
                 if (selected.toFile().isDirectory()) {
                     clientDir2 = selected;
-                    List<String> names2;
-                    if (clientDir2.getParent() != null) {
-                        names2 = new LinkedList<>();
-                        names2.add("...");
-                        names2.addAll(List.of(Objects.requireNonNull(clientDir2.toFile().list())));
-                    } else {
-                        names2 = List.of(Objects.requireNonNull(clientDir2.toFile().list()));
-                    }
                     updateServerView("this computer",
-                            names2,
-                            clientDir2.toAbsolutePath().normalize().toString());
+                            List.of(Objects.requireNonNull(clientDir2.toFile().list())),
+                            clientDir2.normalize().toString());
                 }
             }
             //при подключенном
